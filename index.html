@@ -163,7 +163,7 @@
         signalHistory.push({ t: now, v: isLight });
 
         // 🌞🌚 表示
-        debugStr += isLight ? 'O' : 'X';
+        debugStr += isLight ? '🌞' : '🌚';
         if (debugStr.length > 100) debugStr = debugStr.slice(-100);
         document.getElementById('debug').textContent = debugStr;
 
@@ -171,7 +171,7 @@
           let result = decodeMorse(signalHistory);
           if (result) {
             decodedText += result;
-            document.getElementById('output').textContent = '受信結果x: ' + decodedText;
+            document.getElementById('output').textContent = '受信結果: ' + decodedText;
             signalHistory = [];
           }
         }
