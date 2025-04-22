@@ -51,15 +51,17 @@
       padding: 1em;
       width: 100%;
       background: #111;
-      text-align: center;
+      text-align: left;
       font-size: 1.2em;
+      overflow-wrap: break-word;
     }
     .debug-box {
       padding: 1em;
       width: 100%;
       background: #222;
-      text-align: center;
+      text-align: left;
       font-size: 1.5em;
+      overflow-wrap: break-word;
     }
   </style>
 </head>
@@ -74,7 +76,7 @@
   </div>
   <div class="output-box" id="output">受信結果: </div>
   <div class="debug-box" id="debug"></div>
-  <div>ｖ1.0.2</div>
+  <div>ｖ1.0.3</div>
 
   <script>
     const MORSE_CODE = {
@@ -154,6 +156,9 @@
       let signalHistory = [];
       let decodedText = '';
       let debugStr = '';
+      let lastSignal = null;
+      let lastChangeTime = Date.now();
+      let morseSequence = '';
 
       function detectLoop() {
         if (!detecting) return;
@@ -182,37 +187,35 @@
 
         const now = Date.now();
         const isLight = avgBrightness > 200;
-        signalHistory.push({ t: now, v: isLight });
 
         debugStr += isLight ? '🌞' : '🌚';
-        if (debugStr.length > 100) debugStr = debugStr.slice(-100);
+        if (debugStr.length > 20) debugStr = debugStr.slice(-20);
         document.getElementById('debug').textContent = debugStr;
 
-        if (signalHistory.length > 10) {
-          let result = decodeMorse(signalHistory);
-          if (result) {
-            decodedText += result;
-            document.getElementById('output').textContent = '受信結果: ' + decodedText;
-            signalHistory = [];
+        if (lastSignal !== null && isLight !== lastSignal) {
+          const duration = now - lastChangeTime;
+          if (lastSignal) {
+            morseSequence += duration < (DOT + DASH) / 2 ? '.' : '-';
+          } else {
+            if (duration >= WORD_SPACE) {
+              decodedText += REVERSE_MORSE[morseSequence] || '?';
+              decodedText += ' ';
+              morseSequence = '';
+            } else if (duration >= LETTER_SPACE) {
+              decodedText += REVERSE_MORSE[morseSequence] || '?';
+              morseSequence = '';
+            }
           }
+          lastChangeTime = now;
         }
 
+        lastSignal = isLight;
+        document.getElementById('output').textContent = '受信結果: ' + decodedText;
         requestAnimationFrame(detectLoop);
       }
 
       detecting = true;
       detectLoop();
-    }
-
-    function decodeMorse(history) {
-      const pattern = history.map(p => p.v ? '1' : '0').join('');
-      const count = pattern.match(/1+|0+/g)?.map(s => s.length) || [];
-      if (count.length < 2) return '';
-      const morse = count.map((len, i) => {
-        if (i % 2 === 0) return len < 3 ? '.' : '-';
-        return '';
-      }).join('');
-      return REVERSE_MORSE[morse] || '';
     }
 
     initCamera();
