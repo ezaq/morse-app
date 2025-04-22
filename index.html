@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>モールス信号送信アプリ</title>
+  <title>モールス信号送受信アプリ</title>
   <style>
     body {
       margin: 0;
@@ -40,6 +40,13 @@
       background: #0af;
       color: white;
     }
+    .output-box {
+      padding: 1em;
+      width: 100%;
+      background: #111;
+      text-align: center;
+      font-size: 1.2em;
+    }
   </style>
 </head>
 <body>
@@ -48,6 +55,7 @@
     <input type="text" id="input" placeholder="英数字のみ入力" pattern="[A-Za-z0-9]+">
     <button id="sendBtn">送信</button>
   </div>
+  <div class="output-box" id="output">受信結果: </div>
 
   <script>
     const MORSE_CODE = {
@@ -61,19 +69,24 @@
       5: '.....', 6: '-....', 7: '--...', 8: '---..', 9: '----.'
     };
 
-    const UNIT = 60000 / 10 / 50; // 100cpm = 12wpm ≒ 50 units per minute
-    const DOT = UNIT;             // 1 unit
-    const DASH = UNIT * 3;        // 3 units
-    const SPACE = UNIT;           // 1 unit between parts of the same letter
-    const LETTER_SPACE = UNIT * 3; // 3 units between letters
-    const WORD_SPACE = UNIT * 7;  // 7 units between words
+    const REVERSE_MORSE = Object.fromEntries(Object.entries(MORSE_CODE).map(([k, v]) => [v, k]));
+
+    const UNIT = 60000 / 10 / 50; // 10cpm = 1/10 of original speed
+    const DOT = UNIT;
+    const DASH = UNIT * 3;
+    const SPACE = UNIT;
+    const LETTER_SPACE = UNIT * 3;
+    const WORD_SPACE = UNIT * 7;
 
     let track;
+    let detecting = false;
 
     async function initCamera() {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-      document.getElementById('video').srcObject = stream;
+      const video = document.getElementById('video');
+      video.srcObject = stream;
       track = stream.getVideoTracks()[0];
+      startLightDetection(video);
     }
 
     function sleep(ms) {
@@ -110,6 +123,58 @@
       }
       await blinkMorse(input);
     });
+
+    function startLightDetection(video) {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      let signalHistory = [];
+      let decodedText = '';
+
+      function detectLoop() {
+        if (!detecting) return;
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+        let brightness = 0;
+        for (let i = 0; i < frame.data.length; i += 4) {
+          brightness += frame.data[i] + frame.data[i + 1] + frame.data[i + 2];
+        }
+        const avgBrightness = brightness / (frame.data.length / 4);
+
+        const now = Date.now();
+        const isLight = avgBrightness > 200; // 光検出しきい値
+        signalHistory.push({ t: now, v: isLight });
+
+        // 受信デコード処理（簡易）
+        if (signalHistory.length > 10) {
+          let result = decodeMorse(signalHistory);
+          if (result) {
+            decodedText += result;
+            document.getElementById('output').textContent = '受信結果: ' + decodedText;
+            signalHistory = [];
+          }
+        }
+
+        requestAnimationFrame(detectLoop);
+      }
+
+      detecting = true;
+      detectLoop();
+    }
+
+    function decodeMorse(history) {
+      const pattern = history.map(p => p.v ? '1' : '0').join('');
+      const count = pattern.match(/1+|0+/g)?.map(s => s.length) || [];
+      if (count.length < 2) return '';
+      const morse = count.map((len, i) => {
+        if (i % 2 === 0) return len < 3 ? '.' : '-';
+        return '';
+      }).join('');
+      return REVERSE_MORSE[morse] || '';
+    }
 
     initCamera();
   </script>
