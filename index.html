@@ -2,70 +2,116 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>カメラとライトコントロール</title>
+  <title>モールス信号送信アプリ</title>
   <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #000;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
     video {
       width: 100%;
-      max-height: 60vh;
+      height: auto;
       background: black;
     }
-    button {
-      padding: 1em;
-      font-size: 1.2em;
-      margin-top: 1em;
+    .controls {
+      display: flex;
       width: 100%;
+      padding: 1em;
+      background: #111;
+    }
+    input[type="text"] {
+      flex: 1;
+      font-size: 1.2em;
+      padding: 0.5em;
+      border: none;
+      border-radius: 8px;
+      margin-right: 1em;
+    }
+    button {
+      font-size: 1.2em;
+      padding: 0.5em 1em;
+      border: none;
+      border-radius: 8px;
+      background: #0af;
+      color: white;
     }
   </style>
 </head>
 <body>
-
-  <video id="video" autoplay playsinline></video>
-  <button id="toggle-light">ライトON</button>
+  <video id="video" autoplay playsinline muted></video>
+  <div class="controls">
+    <input type="text" id="input" placeholder="英数字のみ入力" pattern="[A-Za-z0-9]+">
+    <button id="sendBtn">送信</button>
+  </div>
 
   <script>
-    const video = document.getElementById('video');
-    const button = document.getElementById('toggle-light');
+    const MORSE_CODE = {
+      A: '.-',     B: '-...',   C: '-.-.',  D: '-..',   E: '.',
+      F: '..-.',  G: '--.',    H: '....',  I: '..',    J: '.---',
+      K: '-.-',   L: '.-..',   M: '--',    N: '-.',    O: '---',
+      P: '.--.',  Q: '--.-',   R: '.-.',   S: '...',   T: '-',
+      U: '..-',   V: '...-',   W: '.--',   X: '-..-',  Y: '-.--',
+      Z: '--..',
+      0: '-----', 1: '.----', 2: '..---', 3: '...--', 4: '....-',
+      5: '.....', 6: '-....', 7: '--...', 8: '---..', 9: '----.'
+    };
 
-    let stream;
+    const UNIT = 60000 / 100 / 50; // 100cpm = 12wpm ≒ 50 units per minute
+    const DOT = UNIT;             // 1 unit
+    const DASH = UNIT * 3;        // 3 units
+    const SPACE = UNIT;           // 1 unit between parts of the same letter
+    const LETTER_SPACE = UNIT * 3; // 3 units between letters
+    const WORD_SPACE = UNIT * 7;  // 7 units between words
+
     let track;
-    let torchOn = false;
 
     async function initCamera() {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment' }
-        });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      document.getElementById('video').srcObject = stream;
+      track = stream.getVideoTracks()[0];
+    }
 
-        video.srcObject = stream;
-        track = stream.getVideoTracks()[0];
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
-        const capabilities = track.getCapabilities();
-        if (!capabilities.torch) {
-          button.disabled = true;
-          button.textContent = 'ライト非対応';
-          console.warn('トーチ機能がサポートされていません。');
+    async function blinkMorse(text) {
+      text = text.toUpperCase();
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        if (char === ' ') {
+          await sleep(WORD_SPACE);
+          continue;
         }
-      } catch (err) {
-        console.error('カメラアクセスに失敗:', err);
-        alert('カメラにアクセスできません。HTTPSでアクセスしているか確認してください。');
+        const code = MORSE_CODE[char];
+        if (!code) continue;
+
+        for (let j = 0; j < code.length; j++) {
+          const signal = code[j];
+          await track.applyConstraints({ advanced: [{ torch: true }] });
+          await sleep(signal === '.' ? DOT : DASH);
+          await track.applyConstraints({ advanced: [{ torch: false }] });
+          if (j < code.length - 1) await sleep(SPACE);
+        }
+        await sleep(LETTER_SPACE);
       }
     }
 
-    async function toggleTorch() {
-      if (!track) return;
-
-      torchOn = !torchOn;
-      try {
-        await track.applyConstraints({ advanced: [{ torch: torchOn }] });
-        button.textContent = torchOn ? 'ライトOFF' : 'ライトON';
-      } catch (err) {
-        console.error('ライト切り替え失敗:', err);
+    document.getElementById('sendBtn').addEventListener('click', async () => {
+      const input = document.getElementById('input').value;
+      if (!/^[a-zA-Z0-9 ]+$/.test(input)) {
+        alert('英数字のみ入力してください');
+        return;
       }
-    }
+      await blinkMorse(input);
+    });
 
-    button.addEventListener('click', toggleTorch);
     initCamera();
   </script>
-
 </body>
 </html>
