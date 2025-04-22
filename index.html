@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>カメラとライトコントロール</title>
+  <style>
+    video {
+      width: 100%;
+      max-height: 60vh;
+      background: black;
+    }
+    button {
+      padding: 1em;
+      font-size: 1.2em;
+      margin-top: 1em;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <video id="video" autoplay playsinline></video>
+  <button id="toggle-light">ライトON</button>
+
+  <script>
+    const video = document.getElementById('video');
+    const button = document.getElementById('toggle-light');
+
+    let stream;
+    let track;
+    let torchOn = false;
+
+    async function initCamera() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' }
+        });
+
+        video.srcObject = stream;
+        track = stream.getVideoTracks()[0];
+
+        const capabilities = track.getCapabilities();
+        if (!capabilities.torch) {
+          button.disabled = true;
+          button.textContent = 'ライト非対応';
+          console.warn('トーチ機能がサポートされていません。');
+        }
+      } catch (err) {
+        console.error('カメラアクセスに失敗:', err);
+        alert('カメラにアクセスできません。HTTPSでアクセスしているか確認してください。');
+      }
+    }
+
+    async function toggleTorch() {
+      if (!track) return;
+
+      torchOn = !torchOn;
+      try {
+        await track.applyConstraints({ advanced: [{ torch: torchOn }] });
+        button.textContent = torchOn ? 'ライトOFF' : 'ライトON';
+      } catch (err) {
+        console.error('ライト切り替え失敗:', err);
+      }
+    }
+
+    button.addEventListener('click', toggleTorch);
+    initCamera();
+  </script>
+
+</body>
+</html>
