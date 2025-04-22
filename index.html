@@ -47,6 +47,13 @@
       text-align: center;
       font-size: 1.2em;
     }
+    .debug-box {
+      padding: 1em;
+      width: 100%;
+      background: #222;
+      text-align: center;
+      font-size: 1.5em;
+    }
   </style>
 </head>
 <body>
@@ -56,6 +63,7 @@
     <button id="sendBtn">送信</button>
   </div>
   <div class="output-box" id="output">受信結果: </div>
+  <div class="debug-box" id="debug"></div>
 
   <script>
     const MORSE_CODE = {
@@ -71,7 +79,7 @@
 
     const REVERSE_MORSE = Object.fromEntries(Object.entries(MORSE_CODE).map(([k, v]) => [v, k]));
 
-    const UNIT = 60000 / 10 / 50; // 10cpm = 1/10 of original speed
+    const UNIT = 60000 / 10 / 50; // 10cpm
     const DOT = UNIT;
     const DASH = UNIT * 3;
     const SPACE = UNIT;
@@ -129,6 +137,7 @@
       const ctx = canvas.getContext('2d');
       let signalHistory = [];
       let decodedText = '';
+      let debugStr = '';
 
       function detectLoop() {
         if (!detecting) return;
@@ -145,10 +154,14 @@
         const avgBrightness = brightness / (frame.data.length / 4);
 
         const now = Date.now();
-        const isLight = avgBrightness > 200; // 光検出しきい値
+        const isLight = avgBrightness > 200;
         signalHistory.push({ t: now, v: isLight });
 
-        // 受信デコード処理（簡易）
+        // 🌞🌚 表示
+        debugStr += isLight ? '🌞' : '🌚';
+        if (debugStr.length > 100) debugStr = debugStr.slice(-100);
+        document.getElementById('debug').textContent = debugStr;
+
         if (signalHistory.length > 10) {
           let result = decodeMorse(signalHistory);
           if (result) {
