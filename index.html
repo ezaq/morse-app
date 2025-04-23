@@ -74,7 +74,7 @@
     <input type="text" id="input" placeholder="英数字のみ入力" pattern="[A-Za-z0-9]+">
     <button id="sendBtn">送信</button>
   </div>
-  <div>v1.0.4</div>
+  <div>v1.0.5</div>
   <div class="output-box" id="output">受信結果: </div>
   <div class="debug-box" id="debug"></div>
   <canvas id="brightnessTimeline" width="300" height="30" style="background: #333; width: 100%;"></canvas>
@@ -208,7 +208,7 @@
         if (lastSignal !== null && isLight !== lastSignal) {
           const duration = now - lastChangeTime;
           if (lastSignal) {
-            morseSequence += duration < (DOT + DASH) / 2 ? '.' : '-';
+            morseSequence += duration < DOT * 2 ? '.' : '-';
           } else {
             if (duration >= WORD_SPACE) {
               decodedText += REVERSE_MORSE[morseSequence] || '?';
