@@ -74,9 +74,10 @@
     <input type="text" id="input" placeholder="英数字のみ入力" pattern="[A-Za-z0-9]+">
     <button id="sendBtn">送信</button>
   </div>
+  <div>v1.0.4</div>
   <div class="output-box" id="output">受信結果: </div>
   <div class="debug-box" id="debug"></div>
-  <div>ｖ1.0.3</div>
+  <canvas id="brightnessTimeline" width="300" height="30" style="background: #333; width: 100%;"></canvas>
 
   <script>
     const MORSE_CODE = {
@@ -92,7 +93,7 @@
 
     const REVERSE_MORSE = Object.fromEntries(Object.entries(MORSE_CODE).map(([k, v]) => [v, k]));
 
-    const UNIT = 60000 / 10 / 50; // 10cpm
+    const UNIT = 60000 / 10 / 50;
     const DOT = UNIT;
     const DASH = UNIT * 3;
     const SPACE = UNIT;
@@ -153,7 +154,10 @@
       const ctx = canvas.getContext('2d');
       const overlay = document.getElementById('overlay');
       const overlayCtx = overlay.getContext('2d');
-      let signalHistory = [];
+      const brightnessHistory = [];
+      const timelineCanvas = document.getElementById('brightnessTimeline');
+      const timelineCtx = timelineCanvas.getContext('2d');
+
       let decodedText = '';
       let debugStr = '';
       let lastSignal = null;
@@ -191,6 +195,15 @@
         debugStr += isLight ? '🌞' : '🌚';
         if (debugStr.length > 20) debugStr = debugStr.slice(-20);
         document.getElementById('debug').textContent = debugStr;
+
+        brightnessHistory.push(isLight ? 1 : 0);
+        if (brightnessHistory.length > 300) brightnessHistory.shift();
+
+        timelineCtx.clearRect(0, 0, timelineCanvas.width, timelineCanvas.height);
+        for (let i = 0; i < brightnessHistory.length; i++) {
+          timelineCtx.fillStyle = brightnessHistory[i] ? '#fff' : '#000';
+          timelineCtx.fillRect(i, 0, 1, timelineCanvas.height);
+        }
 
         if (lastSignal !== null && isLight !== lastSignal) {
           const duration = now - lastChangeTime;
