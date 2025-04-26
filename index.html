@@ -33,36 +33,31 @@
     }
     input[type="text"] {
       flex: 1;
-      font-size: 1.2em;
+      font-size: 2.4em;
       padding: 0.5em;
       border: none;
       border-radius: 8px;
       margin-right: 1em;
     }
     button {
-      font-size: 1.2em;
+      font-size: 2.4em;
       padding: 0.5em 1em;
       border: none;
       border-radius: 8px;
       background: #0af;
       color: white;
+      margin-left: 0.5em;
     }
     .output-box {
       padding: 1em;
       width: 100%;
       background: #111;
       text-align: left;
-      font-size: 1.2em;
+      font-size: 2.4em;
       overflow-wrap: break-word;
     }
     .debug-box {
-      padding: 1em;
-      width: 100%;
-      background: #222;
-      text-align: left;
-      font-size: 1.5em;
-      overflow-wrap: break-word;
-      white-space: nowrap;
+      display: none;
     }
   </style>
 </head>
@@ -74,10 +69,9 @@
   <div class="controls">
     <input type="text" id="input" placeholder="英数字のみ入力" pattern="[A-Za-z0-9]+">
     <button id="sendBtn">送信</button>
+    <button id="clearBtn">クリア</button>
   </div>
-  <div>ｖ1.0.6</div>
   <div class="output-box" id="output">受信結果: </div>
-  <div class="debug-box" id="debug"></div>
   <canvas id="brightnessTimeline" width="300" height="30" style="background: #333; width: 100%;"></canvas>
 
   <script>
@@ -150,6 +144,10 @@
       await blinkMorse(input);
     });
 
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      document.getElementById('output').textContent = '受信結果: ';
+    });
+
     function startLightDetection(video) {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
@@ -160,7 +158,6 @@
       const timelineCtx = timelineCanvas.getContext('2d');
 
       let decodedText = '';
-      let debugStr = '';
       let lastSignal = null;
       let lastChangeTime = Date.now();
       let morseSequence = '';
@@ -192,10 +189,6 @@
 
         const now = Date.now();
         const isLight = avgBrightness > 200;
-
-        debugStr += isLight ? '🌞' : '🌚';
-        if (debugStr.length > 20) debugStr = debugStr.slice(-20);
-        document.getElementById('debug').textContent = debugStr;
 
         brightnessHistory.push(isLight ? 1 : 0);
         if (brightnessHistory.length > 300) brightnessHistory.shift();
