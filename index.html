@@ -73,6 +73,7 @@
   </div>
   <div class="output-box" id="output">受信結果: </div>
   <canvas id="brightnessTimeline" width="300" height="30" style="background: #333; width: 100%;"></canvas>
+  <div>v1.1.0</div>
 
   <script>
     const MORSE_CODE = {
@@ -204,6 +205,7 @@
           const duration = now - lastChangeTime;
           if (lastSignal) {
             morseSequence += duration < DOT * 1.5 ? '.' : '-';
+decodedText+=morseSequence;
           } else {
             if (duration >= WORD_SPACE) {
               decodedText += REVERSE_MORSE[morseSequence] || '?';
