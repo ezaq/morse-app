@@ -97,6 +97,7 @@
 
     let track;
     let detecting = false;
+    let decodedText = '';
 
     async function initCamera() {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
@@ -146,6 +147,7 @@
 
     document.getElementById('clearBtn').addEventListener('click', () => {
       document.getElementById('output').textContent = '受信結果: ';
+      decodedText = '';
     });
 
     function startLightDetection(video) {
@@ -157,7 +159,6 @@
       const timelineCanvas = document.getElementById('brightnessTimeline');
       const timelineCtx = timelineCanvas.getContext('2d');
 
-      let decodedText = '';
       let lastSignal = null;
       let lastChangeTime = Date.now();
       let morseSequence = '';
