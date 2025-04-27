@@ -71,9 +71,25 @@
     <button id="sendBtn">送信</button>
     <button id="clearBtn">クリア</button>
   </div>
+  <!-- ★ スライダー追加ここから！ -->
+  <div class="controls" style="flex-direction: column; align-items: flex-start;">
+    <label style="font-size: 1.2em;">しきい値調整 (明るさ検出): <span id="thresholdValue">200</span></label>
+    <input type="range" id="thresholdSlider" min="0" max="500" value="200" style="width: 100%;">
+  </div>
+  <!-- ★ スライダー追加ここまで！ -->
   <div class="output-box" id="output">受信結果: </div>
   <canvas id="brightnessTimeline" width="300" height="30" style="background: #333; width: 100%;"></canvas>
-  <div id="version" style="padding: 0.5em; text-align: center; font-size: 1.2em;">v1</div>
+
+  <!-- 明るさしきい値調整スライダー -->
+  <div class="controls" style="flex-direction: column; align-items: flex-start;">
+    <label style="font-size: 1.2em;">しきい値調整 (明るさ検出): <span id="thresholdValue">200</span></label>
+    <input type="range" id="thresholdSlider" min="0" max="500" value="200" style="width: 100%;">
+  </div>
+
+  <!-- バージョン番号表示 -->
+  <div style="padding: 0.5em; font-size: 1.2em; text-align: left; width: 100%;">
+    バージョン: v2
+  </div>
 
   <script>
     const MORSE_CODE = {
@@ -99,6 +115,8 @@
     let track;
     let detecting = false;
     let decodedText = '';
+
+    let brightnessThreshold = 200;
 
     async function initCamera() {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
@@ -151,6 +169,11 @@
       decodedText = '';
     });
 
+    document.getElementById('thresholdSlider').addEventListener('input', (e) => {
+      brightnessThreshold = parseInt(e.target.value, 10);
+      document.getElementById('thresholdValue').textContent = brightnessThreshold;
+    });
+
     function startLightDetection(video) {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
@@ -190,7 +213,7 @@
         overlayCtx.strokeRect(centerX, centerY, 128, 128);
 
         const now = Date.now();
-        const isLight = avgBrightness > 200;
+        const isLight = avgBrightness > brightnessThreshold;
 
         brightnessHistory.push(isLight ? 1 : 0);
         if (brightnessHistory.length > 300) brightnessHistory.shift();
@@ -205,13 +228,12 @@
           const duration = now - lastChangeTime;
           if (lastSignal) {
             morseSequence += duration < DOT * 1.5 ? '.' : '-';
-decodedText+=morseSequence;
           } else {
             if (duration >= WORD_SPACE) {
               decodedText += REVERSE_MORSE[morseSequence] || '?';
               decodedText += ' ';
               morseSequence = '';
-            } else if (duration >= LETTER_SPACE/2) {
+            } else if (duration >= LETTER_SPACE) {
               decodedText += REVERSE_MORSE[morseSequence] || '?';
               morseSequence = '';
             }
