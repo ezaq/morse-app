@@ -85,7 +85,7 @@
 
   <!-- バージョン番号表示 -->
   <div style="padding: 0.5em; font-size: 1.2em; text-align: left; width: 100%;">
-    バージョン: v3
+    バージョン: v4
   </div>
 
   <script>
@@ -108,10 +108,14 @@
     const SPACE = UNIT;
     const LETTER_SPACE = UNIT * 3;
     const WORD_SPACE = UNIT * 7;
+    const HIST_SIZE = 4;
 
     let track;
     let detecting = false;
     let decodedText = '';
+    // ヒストグラムの時間とカウントを保持する配列
+    const lightDurations = [];
+    const darkDurations = [];
 
     let brightnessThreshold = 200;
 
@@ -164,6 +168,8 @@
     document.getElementById('clearBtn').addEventListener('click', () => {
       document.getElementById('output').textContent = '受信結果: ';
       decodedText = '';
+      lightDurations.length = 0;
+      darkDurations.length = 0;
     });
 
     document.getElementById('thresholdSlider').addEventListener('input', (e) => {
@@ -179,10 +185,6 @@
       const brightnessHistory = [];
       const timelineCanvas = document.getElementById('brightnessTimeline');
       const timelineCtx = timelineCanvas.getContext('2d');
-
-      // ヒストグラムの時間とカウントを保持する配列
-      const lightDurations = [];
-      const darkDurations = [];
 
       let lastSignal = null;
       let lastChangeTime = Date.now();
@@ -291,7 +293,7 @@
         histogramCtx.fillStyle = '#ff0000'; // 赤色
         lightHistogram.forEach((count, index) => {
           if (count > 0) {
-            histogramCtx.fillRect(index * 4, histogramCanvas.height - count*2, 4, count*2);
+            histogramCtx.fillRect(index * 2*HIST_SIZE, histogramCanvas.height - count*HIST_SIZE, 2*HIST_SIZE, count*HIST_SIZE);
           }
         });
 
@@ -299,7 +301,7 @@
         histogramCtx.fillStyle = '#0000ff'; // 青色
         darkHistogram.forEach((count, index) => {
           if (count > 0) {
-            histogramCtx.fillRect(index * 4, histogramCanvas.height - count*2, 4, count*2);
+            histogramCtx.fillRect(index * 2*HIST_SIZE, histogramCanvas.height - count*HIST_SIZE, 2*HIST_SIZE, count*HIST_SIZE);
           }
         });
       }
