@@ -85,7 +85,7 @@
 
   <!-- バージョン番号表示 -->
   <div style="padding: 0.5em; font-size: 1.2em; text-align: left; width: 100%;">
-    バージョン: v4.5
+    バージョン: v5
   </div>
 
   <script>
@@ -116,6 +116,8 @@
     // ヒストグラムの時間とカウントを保持する配列
     const lightDurations = [];
     const darkDurations = [];
+    // ドットとダッシュのしきい値（初期値は適当に設定）
+    let dotDashThreshold = 150; // 150msくらい？
 
     let brightnessThreshold = 200;
 
@@ -177,6 +179,15 @@
       document.getElementById('thresholdValue').textContent = brightnessThreshold;
     });
 
+    // ヒストグラムキャンバスにクリックイベントを設定
+    const histogramCanvas = document.getElementById('histogramCanvas');
+    histogramCanvas.addEventListener('click', (e) => {
+      const rect = histogramCanvas.getBoundingClientRect();
+      const x = e.clientX - rect.left; // キャンバス内のx座標
+      const timeMs = Math.floor(x / (2 * HIST_SIZE) * 10); // 10ms単位に換算
+      dotDashThreshold = timeMs;
+    });
+
     function startLightDetection(video) {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
@@ -218,6 +229,16 @@
 
         const now = Date.now();
         const isLight = avgBrightness > brightnessThreshold;
+        signalHistory.push({ t: now, v: isLight });
+
+        if (signalHistory.length > 10) {
+           let result = decodeMorse(signalHistory);
+           if (result) {
+             decodedText += result;
+             document.getElementById('output').textContent = '受信結果: ' + decodedText;
+             signalHistory = [];
+           }
+         }
 
         brightnessHistory.push(isLight ? 1 : 0);
         if (brightnessHistory.length > 300) brightnessHistory.shift();
@@ -304,10 +325,25 @@
             histogramCtx.fillRect(index * 2*HIST_SIZE, histogramCanvas.height/2, 2*HIST_SIZE, count*HIST_SIZE);
           }
         });
+
+        // ドットとダッシュのしきい値
+        histogramCtx.fillStyle = '#00ff00'; // 緑色
+        histogramCtx.fillRect(dotDashThreshold/10 * 2*HIST_SIZE, 0, 2*HIST_SIZE, histogramCanvas.height);
       }
 
       detecting = true;
       detectLoop();
+    }
+
+    function decodeMorse(history) {
+      const pattern = history.map(p => p.v ? '1' : '0').join('');
+      const count = pattern.match(/1+|0+/g)?.map(s => s.length) || [];
+      if (count.length < 2) return '';
+      const morse = count.map((len, i) => {
+        if (i % 2 === 0) return len < 3 ? '.' : '-';
+        return '';
+      }).join('');
+      return REVERSE_MORSE[morse] || '';
     }
 
     initCamera();
