@@ -301,7 +301,7 @@
         histogramCtx.fillStyle = '#0000ff'; // 青色
         darkHistogram.forEach((count, index) => {
           if (count > 0) {
-            histogramCtx.fillRect(index * 2*HIST_SIZE, histogramCanvas.height/2 + count*HIST_SIZE, 2*HIST_SIZE, count*HIST_SIZE);
+            histogramCtx.fillRect(index * 2*HIST_SIZE, histogramCanvas.height/2, 2*HIST_SIZE, count*HIST_SIZE);
           }
         });
       }
