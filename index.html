@@ -85,7 +85,7 @@
 
   <!-- バージョン番号表示 -->
   <div style="padding: 0.5em; font-size: 1.2em; text-align: left; width: 100%;">
-    バージョン: v5
+    バージョン: v6
   </div>
 
   <script>
@@ -116,8 +116,8 @@
     // ヒストグラムの時間とカウントを保持する配列
     const lightDurations = [];
     const darkDurations = [];
-    // ドットとダッシュのしきい値（初期値は適当に設定）
-    let dotDashThreshold = 150; // 150msくらい？
+    // ドット・ダッシュのしきい値
+    let dotDashThreshold = 150; // ms 初期仮設定
 
     let brightnessThreshold = 200;
 
@@ -179,14 +179,67 @@
       document.getElementById('thresholdValue').textContent = brightnessThreshold;
     });
 
-    // ヒストグラムキャンバスにクリックイベントを設定
+    // ヒストグラムをタップしたら、しきい値を更新する
     const histogramCanvas = document.getElementById('histogramCanvas');
     histogramCanvas.addEventListener('click', (e) => {
       const rect = histogramCanvas.getBoundingClientRect();
-      const x = e.clientX - rect.left; // キャンバス内のx座標
+      const x = e.clientX - rect.left;
       const timeMs = Math.floor(x / (2 * HIST_SIZE) * 10); // 10ms単位に換算
       dotDashThreshold = timeMs;
+      // alert(`ドット/ダッシュしきい値を ${dotDashThreshold} ms に設定しました`);
     });
+
+    // ヒストグラムからデコードする関数
+    function decodeFromDurations() {
+      let morseSequence = '';
+      let result = '';
+
+      // lightDurationsとdarkDurationsを順番に処理する
+      const minLength = Math.min(lightDurations.length, darkDurations.length);
+
+      for (let i = 0; i < minLength; i++) {
+        const light = lightDurations[i];
+        const dark = darkDurations[i];
+
+        if (light < dotDashThreshold) {
+          morseSequence += '.'; // ドット
+        } else {
+          morseSequence += '-'; // ダッシュ
+        }
+
+        if (dark > WORD_SPACE * 0.7) {
+          // 単語間スペース（単語区切り）
+          if (morseSequence.length > 0) {
+            result += REVERSE_MORSE[morseSequence] || '?';
+            morseSequence = '';
+          }
+          result += ' '; // 単語の間に空白を追加
+        } else if (dark > LETTER_SPACE * 0.7) {
+          // 文字間スペース
+          if (morseSequence.length > 0) {
+            result += REVERSE_MORSE[morseSequence] || '?';
+            morseSequence = '';
+          }
+          // 文字間スペースでは空白は入れない（単語の中なので）
+        }
+      }
+
+      // 最後の文字が残っていれば追加
+      if (morseSequence.length > 0) {
+        result += REVERSE_MORSE[morseSequence] || '?';
+      }
+
+      // 出力
+      decodedText = result.trim();
+      document.getElementById('output').textContent = '受信結果: ' + decodedText;
+    }
+
+    // 画面上に「デコード」ボタンを追加
+    const decodeBtn = document.createElement('button');
+    decodeBtn.textContent = 'デコード';
+    decodeBtn.style.fontSize = '2.4em';
+    decodeBtn.onclick = decodeFromDurations;
+    document.querySelector('.controls').appendChild(decodeBtn);
 
     function startLightDetection(video) {
       const canvas = document.createElement('canvas');
@@ -232,12 +285,12 @@
         signalHistory.push({ t: now, v: isLight });
 
         if (signalHistory.length > 10) {
-//           let result = decodeMorse(signalHistory);
-//           if (result) {
-//             decodedText += result;
-//             document.getElementById('output').textContent = '受信結果: ' + decodedText;
+           let result = decodeMorse(signalHistory);
+           if (result) {
+             decodedText += result;
+             document.getElementById('output').textContent = '受信結果: ' + decodedText;
              signalHistory = [];
-//           }
+           }
          }
 
         brightnessHistory.push(isLight ? 1 : 0);
