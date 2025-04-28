@@ -232,12 +232,12 @@
         signalHistory.push({ t: now, v: isLight });
 
         if (signalHistory.length > 10) {
-           let result = decodeMorse(signalHistory);
-           if (result) {
-             decodedText += result;
-             document.getElementById('output').textContent = '受信結果: ' + decodedText;
+//           let result = decodeMorse(signalHistory);
+//           if (result) {
+//             decodedText += result;
+//             document.getElementById('output').textContent = '受信結果: ' + decodedText;
              signalHistory = [];
-           }
+//           }
          }
 
         brightnessHistory.push(isLight ? 1 : 0);
