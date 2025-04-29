@@ -40,8 +40,8 @@ const morseCodeMap = {
   8: "---..", 9: "----."
 };
 
-// カメラの起動
-navigator.mediaDevices.getUserMedia({ video: true })
+// カメラの起動（バックカメラを指定）
+navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } } })
   .then(stream => {
     video.srcObject = stream;
   })
