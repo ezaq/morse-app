@@ -1,55 +1,44 @@
 body {
-  margin: 0;
+  background-color: black;
+  color: white;
   font-family: sans-serif;
-  background: #000;
-  color: #fff;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
-video {
-  width: 100%;
-  height: auto;
-  background: black;
+
+video, canvas {
+  border: 1px solid #444;
+  margin: 10px 0;
 }
-canvas.overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 10;
-  pointer-events: none;
-}
-.controls {
+
+#controls {
   display: flex;
-  width: 100%;
-  padding: 1em;
-  background: #111;
+  gap: 10px;
+  margin: 10px 0;
 }
+
 input[type="text"] {
-  flex: 1;
-  font-size: 2.4em;
-  padding: 0.5em;
-  border: none;
-  border-radius: 8px;
-  margin-right: 1em;
+  width: 200px;
+  padding: 5px;
+  font-size: 16px;
 }
+
 button {
-  font-size: 2.4em;
-  padding: 0.5em 1em;
-  border: none;
-  border-radius: 8px;
-  background: #0af;
-  color: white;
-  margin-left: 0.5em;
+  padding: 5px 10px;
+  font-size: 16px;
 }
-.output-box {
-  padding: 1em;
-  width: 100%;
-  background: #111;
-  text-align: left;
-  font-size: 2.4em;
-  overflow-wrap: break-word;
+
+#output {
+  margin-top: 10px;
+  font-weight: bold;
+  font-size: 18px;
 }
-.debug-box {
-  display: none;
+
+#thresholdValue {
+  margin-left: 10px;
+  font-weight: bold;
+  color: yellow;
 }

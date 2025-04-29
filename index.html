@@ -6,31 +6,36 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div style="position: relative; width: 100%;">
+  <!-- カメラ映像と検出枠オーバーレイ -->
+  <div class="video-container">
     <video id="video" autoplay playsinline muted></video>
     <canvas class="overlay" id="overlay"></canvas>
   </div>
 
+  <!-- 入力と送信・クリアボタン -->
   <div class="controls">
     <input type="text" id="input" placeholder="英数字のみ入力" pattern="[A-Za-z0-9]+">
     <button id="sendBtn">送信</button>
     <button id="clearBtn">クリア</button>
   </div>
 
-  <div class="controls" style="flex-direction: column; align-items: flex-start;">
-    <label style="font-size: 1.2em;">しきい値調整 (明るさ検出): <span id="thresholdValue">200</span></label>
-    <input type="range" id="thresholdSlider" min="0" max="500" value="200" style="width: 100%;">
+  <!-- しきい値スライダー制御パネル -->
+  <div class="controls column">
+    <label class="label">しきい値調整 (明るさ検出): <span id="thresholdValue">200</span></label>
+    <input type="range" id="thresholdSlider" min="0" max="500" value="200">
   </div>
 
+  <!-- 受信出力表示領域 -->
   <div class="output-box" id="output">受信結果: </div>
 
-  <canvas id="brightnessTimeline" width="300" height="30" style="background: #333; width: 100%;"></canvas>
-  <canvas id="histogramCanvas" width="600" height="200" style="background: #333;"></canvas>
+  <!-- 明るさタイムラインとヒストグラム -->
+  <canvas id="brightnessTimeline" width="300" height="30"></canvas>
+  <canvas id="histogramCanvas" width="600" height="200"></canvas>
 
-  <div style="padding: 0.5em; font-size: 1.2em; text-align: left; width: 100%;">
-    バージョン: v4
-  </div>
+  <!-- バージョン表示 -->
+  <div class="version">バージョン: v4</div>
 
-  <script src="script.js"></script>
+  <!-- スクリプト読み込み -->
+  <script src="main.js"></script>
 </body>
 </html>
