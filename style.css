@@ -44,8 +44,8 @@ button {
 }
 
 .version-label {
-  font-size: 0.8rem;
-  color: #666;
+  font-size: 12px;
+  color: #eee;
   text-align: right;
   margin-top: 10px;
 }

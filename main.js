@@ -37,6 +37,7 @@ let brightnessHistory = [];
 let decodedText = "";
 let threshold = parseInt(thresholdSlider.value, 10);
 let capturing = true;
+let videoTrack = null;
 
 // モールス信号辞書（送信用）
 const morseCodeMap = {
@@ -57,7 +58,7 @@ async function initCamera() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
     video.srcObject = stream;
-    track = stream.getVideoTracks()[0];
+    videoTrack = stream.getVideoTracks()[0];
     video.onloadedmetadata = () => {
       video.play();
 //      startLightDetection(video);
