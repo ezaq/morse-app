@@ -10,8 +10,22 @@ body {
 }
 
 video, canvas {
+  width: 80%;
+  height: auto;
   border: 1px solid #444;
   margin: 10px 0;
+}
+
+video {
+  position: relative;
+}
+
+canvas {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  z-index: 10;
+  pointer-events: none;
 }
 
 #controls {
