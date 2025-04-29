@@ -20,7 +20,7 @@ if (versionLabel) {
 // DOM要素の取得
 const video = document.getElementById("video");
 const overlay = document.getElementById("overlay");
-const _ctxOverlay = overlay.getContext("2d");
+const ctxOverlay = overlay.getContext("2d");
 const input = document.getElementById("input");
 const sendBtn = document.getElementById("sendBtn");
 const clearBtn = document.getElementById("clearBtn");
@@ -97,7 +97,6 @@ function processFrame() {
 
   overlay.width = width;
   overlay.height = height;
-  const ctxOverlay = overlay.getContext("2d");
   ctxOverlay.drawImage(video, 0, 0, width, height);
 
   const detectSize = 128;
