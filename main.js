@@ -1,6 +1,18 @@
 // main.js
 // モールス信号送受信アプリ - リファクタ済み・コメント付き
 
+// ▼ バージョン番号をここで管理
+const APP_VERSION = "0.0.5";
+
+// コンソールにバージョンを表示
+console.log(`モールス信号アプリ バージョン: ${APP_VERSION}`);
+
+// バージョン番号をHTMLに表示（該当要素がある場合）
+const versionLabel = document.getElementById("versionLabel");
+if (versionLabel) {
+  versionLabel.textContent = `バージョン: ${APP_VERSION}`;
+}
+
 // CSSを別ファイルに分離（style.css に記述）
 // index.html に以下を追加:
 // <link rel="stylesheet" href="style.css">

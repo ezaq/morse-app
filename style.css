@@ -42,3 +42,10 @@ button {
   font-weight: bold;
   color: yellow;
 }
+
+.version-label {
+  font-size: 0.8rem;
+  color: #666;
+  text-align: right;
+  margin-top: 10px;
+}
