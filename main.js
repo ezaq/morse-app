@@ -52,14 +52,20 @@ const morseCodeMap = {
   8: "---..", 9: "----."
 };
 
-// カメラの起動（バックカメラを指定）
-navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } } })
-  .then(stream => {
+// カメラの起動
+async function initCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
     video.srcObject = stream;
-  })
-  .catch(error => {
+    track = stream.getVideoTracks()[0];
+    video.onloadedmetadata = () => {
+      video.play();
+//      startLightDetection(video);
+    };
+  } catch (error) {
     console.error("カメラの起動に失敗:", error);
   });
+}
 
 // ヒストグラム描画（以前の表示方法に戻す）
 function drawHistogram(data) {
@@ -71,17 +77,13 @@ function drawHistogram(data) {
   });
 }
 
-// タイムライン描画（以前の表示方法に戻す）
+// タイムライン描画
 function drawTimeline() {
   ctxTimeline.clearRect(0, 0, brightnessTimeline.width, brightnessTimeline.height);
-  ctxTimeline.beginPath();
-  ctxTimeline.strokeStyle = "lime";
-  ctxTimeline.lineWidth = 1;
   for (let i = 0; i < brightnessHistory.length; i++) {
-    const y = brightnessTimeline.height - (brightnessHistory[i] / 255) * brightnessTimeline.height;
-    ctxTimeline.lineTo(i, y);
+    ctxTimeline.fillStyle = brightnessHistory[i] ? '#fff' : '#000';
+    ctxTimeline.fillRect(i, 0, 1, brightnessTimeline.height);
   }
-  ctxTimeline.stroke();
 }
 
 // フレームごとの処理
@@ -95,7 +97,17 @@ function processFrame() {
   overlay.width = width;
   overlay.height = height;
   ctxOverlay.drawImage(video, 0, 0, width, height);
-  const imageData = ctxOverlay.getImageData(0, 0, width, height);
+
+  const detectSize = 128;
+  const centerX = Math.floor((overlay.width - detectSize) / 2);
+  const centerY = Math.floor((overlay.height - detectSize) / 2);
+  const imageData = ctxOverlay.getImageData(centerX, centerY, detectSize, detectSize);
+
+  // 明るさ判定領域の表示
+  ctxOverlay.clearRect(0, 0, overlay.width, overlay.height);
+  ctxOverlay.strokeStyle = 'red';
+  ctxOverlay.lineWidth = 2;
+  ctxOverlay.strokeRect(centerX, centerY, 128, 128);
 
   // 明るさ計算
   let brightnessSum = 0;
@@ -109,7 +121,8 @@ function processFrame() {
   const avgBrightness = brightnessSum / (imageData.data.length / 4);
 
   // タイムラインデータ更新
-  brightnessHistory.push(avgBrightness);
+  const isLight = avgBrightness > threshold;
+  brightnessHistory.push(isLight);
   if (brightnessHistory.length > brightnessTimeline.width) {
     brightnessHistory.shift();
   }
@@ -184,4 +197,6 @@ function loop() {
   processFrame();
   requestAnimationFrame(loop);
 }
+
+await initCamera();
 loop();
