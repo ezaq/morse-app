@@ -49,25 +49,26 @@ navigator.mediaDevices.getUserMedia({ video: true })
     console.error("カメラの起動に失敗:", error);
   });
 
-// ヒストグラムを描画
+// ヒストグラム描画（以前の表示方法に戻す）
 function drawHistogram(data) {
   ctxHistogram.clearRect(0, 0, histogramCanvas.width, histogramCanvas.height);
-  ctxHistogram.fillStyle = "lime";
+  ctxHistogram.fillStyle = "gray";
   const binWidth = histogramCanvas.width / data.length;
   data.forEach((val, i) => {
-    ctxHistogram.fillRect(i * binWidth, histogramCanvas.height - val, binWidth - 1, val);
+    ctxHistogram.fillRect(i * binWidth, histogramCanvas.height - val, binWidth, val);
   });
 }
 
-// 明るさタイムラインを描画
+// タイムライン描画（以前の表示方法に戻す）
 function drawTimeline() {
   ctxTimeline.clearRect(0, 0, brightnessTimeline.width, brightnessTimeline.height);
-  ctxTimeline.strokeStyle = "yellow";
   ctxTimeline.beginPath();
-  brightnessHistory.forEach((val, i) => {
-    const y = brightnessTimeline.height - (val / 255) * brightnessTimeline.height;
+  ctxTimeline.strokeStyle = "lime";
+  ctxTimeline.lineWidth = 1;
+  for (let i = 0; i < brightnessHistory.length; i++) {
+    const y = brightnessTimeline.height - (brightnessHistory[i] / 255) * brightnessTimeline.height;
     ctxTimeline.lineTo(i, y);
-  });
+  }
   ctxTimeline.stroke();
 }
 
@@ -114,9 +115,9 @@ function processFrame() {
 
   // しきい値による判定（例: 点灯しているか）
   if (avgBrightness > threshold) {
-    decodedText += "."; // 簡略化例: 明るい → 点
+    decodedText += "."; // 明るい → 点
   } else {
-    decodedText += " "; // 暗い → スペース（区切り）
+    decodedText += " "; // 暗い → 区切り
   }
   output.textContent = `受信結果: ${decodedText.trim()}`;
 }
