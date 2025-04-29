@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <title>モールス信号送受信アプリ</title>
-  <link rel="stylesheet" href="style.css"> <!-- CSSを外部ファイル化 -->
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div style="position: relative; width: 100%;">
     <video id="video" autoplay playsinline muted></video>
     <canvas class="overlay" id="overlay"></canvas>
   </div>
+
   <div class="controls">
     <input type="text" id="input" placeholder="英数字のみ入力" pattern="[A-Za-z0-9]+">
     <button id="sendBtn">送信</button>
@@ -22,6 +23,7 @@
   </div>
 
   <div class="output-box" id="output">受信結果: </div>
+
   <canvas id="brightnessTimeline" width="300" height="30" style="background: #333; width: 100%;"></canvas>
   <canvas id="histogramCanvas" width="600" height="200" style="background: #333;"></canvas>
 
@@ -29,6 +31,6 @@
     バージョン: v4
   </div>
 
-  <script src="script.js"></script> <!-- JavaScriptを外部ファイル化 -->
+  <script src="script.js"></script>
 </body>
 </html>
