@@ -34,19 +34,21 @@ video, canvas {
   pointer-events: none;
 }
 
-#controls {
+.controls {
   display: flex;
+  width: 100%;
   gap: 10px;
   margin: 10px 0;
 }
 
 input[type="text"] {
-  width: 200px;
+  flex-grow: 1;
   padding: 5px;
   font-size: inherit;
 }
 
 button {
+  flex-grow: 0;
   padding: 5px 10px;
   font-size: inherit;
 }
