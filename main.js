@@ -145,7 +145,7 @@ function processFrame() {
   } else {
     decodedText += " "; // 暗い → 区切り
   }
-  output.textContent = `受信結果: ${decodedText.trim()}`;
+//  output.textContent = `受信結果: ${decodedText.trim()}`;
 }
 
 // イベントリスナー
