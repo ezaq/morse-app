@@ -9,21 +9,26 @@ body {
   align-items: center;
 }
 
+#video-container {
+  position: relative;
+  width: 100%;
+}
+
 video, canvas {
-  width: 80%;
-  height: auto;
   border: 1px solid #444;
   margin: 10px 0;
 }
 
-video {
-  position: relative;
+video.video {
+  width: 100%;
+  height: auto;
+  background: black;
 }
 
-canvas {
+canvas.overlay {
   position: absolute;
-  top: 0px;
-  left: 0px;
+  top: 0;
+  left: 0;
   z-index: 10;
   pointer-events: none;
 }
