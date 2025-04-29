@@ -198,5 +198,5 @@ function loop() {
   requestAnimationFrame(loop);
 }
 
-await initCamera();
+initCamera();
 loop();
