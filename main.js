@@ -65,7 +65,7 @@ async function initCamera() {
     };
   } catch (error) {
     console.error("カメラの起動に失敗:", error);
-  });
+  };
 }
 
 // ヒストグラム描画（以前の表示方法に戻す）
