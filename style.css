@@ -9,7 +9,7 @@ body {
   align-items: center;
 }
 
-#video-container {
+.video-container {
   position: relative;
   width: 100%;
 }
