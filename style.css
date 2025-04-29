@@ -1,405 +1,55 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <title>モールス信号送受信アプリ</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: sans-serif;
-      background: #000;
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    video {
-      width: 100%;
-      height: auto;
-      background: black;
-    }
-    canvas.overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 10;
-      pointer-events: none;
-    }
-    .controls {
-      display: flex;
-      width: 100%;
-      padding: 1em;
-      background: #111;
-    }
-    input[type="text"] {
-      flex: 1;
-      font-size: 2.4em;
-      padding: 0.5em;
-      border: none;
-      border-radius: 8px;
-      margin-right: 1em;
-    }
-    button {
-      font-size: 2.4em;
-      padding: 0.5em 1em;
-      border: none;
-      border-radius: 8px;
-      background: #0af;
-      color: white;
-      margin-left: 0.5em;
-    }
-    .output-box {
-      padding: 1em;
-      width: 100%;
-      background: #111;
-      text-align: left;
-      font-size: 2.4em;
-      overflow-wrap: break-word;
-    }
-    .debug-box {
-      display: none;
-    }
-  </style>
-</head>
-<body>
-  <div style="position: relative; width: 100%;">
-    <video id="video" autoplay playsinline muted></video>
-    <canvas class="overlay" id="overlay"></canvas>
-  </div>
-  <div class="controls">
-    <input type="text" id="input" placeholder="英数字のみ入力" pattern="[A-Za-z0-9]+">
-    <button id="sendBtn">送信</button>
-    <button id="clearBtn">クリア</button>
-  </div>
-  <!-- ★ スライダー追加ここから！ -->
-  <div class="controls" style="flex-direction: column; align-items: flex-start;">
-    <label style="font-size: 1.2em;">しきい値調整 (明るさ検出): <span id="thresholdValue">200</span></label>
-    <input type="range" id="thresholdSlider" min="0" max="500" value="200" style="width: 100%;">
-  </div>
-  <!-- ★ スライダー追加ここまで！ -->
-  <div class="output-box" id="output">受信結果: </div>
-  <canvas id="brightnessTimeline" width="300" height="30" style="background: #333; width: 100%;"></canvas>
-
-  <!-- バージョンヒストグラム表示 -->
-  <canvas id="histogramCanvas" width="600" height="200" style="background: #333;"></canvas>
-
-  <!-- バージョン番号表示 -->
-  <div style="padding: 0.5em; font-size: 1.2em; text-align: left; width: 100%;">
-    バージョン: v6
-  </div>
-
-  <script>
-    const MORSE_CODE = {
-      A: '.-',     B: '-...',   C: '-.-.',  D: '-..',   E: '.',
-      F: '..-.',  G: '--.',    H: '....',  I: '..',    J: '.---',
-      K: '-.-',   L: '.-..',   M: '--',    N: '-.',    O: '---',
-      P: '.--.',  Q: '--.-',   R: '.-.',   S: '...',   T: '-',
-      U: '..-',   V: '...-',   W: '.--',   X: '-..-',  Y: '-.--',
-      Z: '--..',
-      0: '-----', 1: '.----', 2: '..---', 3: '...--', 4: '....-',
-      5: '.....', 6: '-....', 7: '--...', 8: '---..', 9: '----.'
-    };
-
-    const REVERSE_MORSE = Object.fromEntries(Object.entries(MORSE_CODE).map(([k, v]) => [v, k]));
-
-    const UNIT = 60000 / 10 / 50;
-    const DOT = UNIT;
-    const DASH = UNIT * 3;
-    const SPACE = UNIT;
-    const LETTER_SPACE = UNIT * 3;
-    const WORD_SPACE = UNIT * 7;
-    const HIST_SIZE = 4;
-
-    let track;
-    let detecting = false;
-    let decodedText = '';
-    // ヒストグラムの時間とカウントを保持する配列
-    const lightDurations = [];
-    const darkDurations = [];
-    // ドット・ダッシュのしきい値
-    let dotDashThreshold = 150; // ms 初期仮設定
-
-    let brightnessThreshold = 200;
-
-    async function initCamera() {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-      const video = document.getElementById('video');
-      video.srcObject = stream;
-      track = stream.getVideoTracks()[0];
-      video.onloadedmetadata = () => {
-        video.play();
-        startLightDetection(video);
-      };
-    }
-
-    function sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-    async function blinkMorse(text) {
-      text = text.toUpperCase();
-      for (let i = 0; i < text.length; i++) {
-        const char = text[i];
-        if (char === ' ') {
-          await sleep(WORD_SPACE);
-          continue;
-        }
-        const code = MORSE_CODE[char];
-        if (!code) continue;
-
-        for (let j = 0; j < code.length; j++) {
-          const signal = code[j];
-          await track.applyConstraints({ advanced: [{ torch: true }] });
-          await sleep(signal === '.' ? DOT : DASH);
-          await track.applyConstraints({ advanced: [{ torch: false }] });
-          if (j < code.length - 1) await sleep(SPACE);
-        }
-        await sleep(LETTER_SPACE);
-      }
-    }
-
-    document.getElementById('sendBtn').addEventListener('click', async () => {
-      const input = document.getElementById('input').value;
-      if (!/^[a-zA-Z0-9 ]+$/.test(input)) {
-        alert('英数字のみ入力してください');
-        return;
-      }
-      await blinkMorse(input);
-    });
-
-    document.getElementById('clearBtn').addEventListener('click', () => {
-      document.getElementById('output').textContent = '受信結果: ';
-      decodedText = '';
-      lightDurations.length = 0;
-      darkDurations.length = 0;
-    });
-
-    document.getElementById('thresholdSlider').addEventListener('input', (e) => {
-      brightnessThreshold = parseInt(e.target.value, 10);
-      document.getElementById('thresholdValue').textContent = brightnessThreshold;
-    });
-
-    // ヒストグラムをタップしたら、しきい値を更新する
-    const histogramCanvas = document.getElementById('histogramCanvas');
-    histogramCanvas.addEventListener('click', (e) => {
-      const rect = histogramCanvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const timeMs = Math.floor(x / (2 * HIST_SIZE) * 10); // 10ms単位に換算
-      dotDashThreshold = timeMs;
-      // alert(`ドット/ダッシュしきい値を ${dotDashThreshold} ms に設定しました`);
-    });
-
-    // ヒストグラムからデコードする関数
-    function decodeFromDurations() {
-      let morseSequence = '';
-      let result = '';
-
-      // lightDurationsとdarkDurationsを順番に処理する
-      const minLength = Math.min(lightDurations.length, darkDurations.length);
-
-      for (let i = 0; i < minLength; i++) {
-        const light = lightDurations[i];
-        const dark = darkDurations[i];
-
-        if (light < dotDashThreshold) {
-          morseSequence += '.'; // ドット
-        } else {
-          morseSequence += '-'; // ダッシュ
-        }
-
-        if (dark > WORD_SPACE * 0.7) {
-          // 単語間スペース（単語区切り）
-          if (morseSequence.length > 0) {
-            result += REVERSE_MORSE[morseSequence] || '?';
-            morseSequence = '';
-          }
-          result += ' '; // 単語の間に空白を追加
-        } else if (dark > LETTER_SPACE * 0.7) {
-          // 文字間スペース
-          if (morseSequence.length > 0) {
-            result += REVERSE_MORSE[morseSequence] || '?';
-            morseSequence = '';
-          }
-          // 文字間スペースでは空白は入れない（単語の中なので）
-        }
-      }
-
-      // 最後の文字が残っていれば追加
-      if (morseSequence.length > 0) {
-        result += REVERSE_MORSE[morseSequence] || '?';
-      }
-
-      // 出力
-      decodedText = result.trim();
-      document.getElementById('output').textContent = '受信結果: ' + decodedText;
-    }
-
-    // 画面上に「デコード」ボタンを追加
-    const decodeBtn = document.createElement('button');
-    decodeBtn.textContent = 'デコード';
-    decodeBtn.style.fontSize = '2.4em';
-    decodeBtn.onclick = decodeFromDurations;
-    document.querySelector('.controls').appendChild(decodeBtn);
-
-    function startLightDetection(video) {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const overlay = document.getElementById('overlay');
-      const overlayCtx = overlay.getContext('2d');
-      const brightnessHistory = [];
-      const timelineCanvas = document.getElementById('brightnessTimeline');
-      const timelineCtx = timelineCanvas.getContext('2d');
-
-      let lastSignal = null;
-      let lastChangeTime = Date.now();
-      let morseSequence = '';
-      let currentDuration = 0; // 現在の状態が続いた時間
-
-      function detectLoop() {
-        if (!detecting) return;
-
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        overlay.width = video.videoWidth;
-        overlay.height = video.videoHeight;
-
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        const centerX = Math.floor(canvas.width / 2 - 64);
-        const centerY = Math.floor(canvas.height / 2 - 64);
-        const imageData = ctx.getImageData(centerX, centerY, 128, 128);
-
-        let brightness = 0;
-        for (let i = 0; i < imageData.data.length; i += 4) {
-          brightness += imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2];
-        }
-        const avgBrightness = brightness / (imageData.data.length / 4);
-
-        overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
-        overlayCtx.strokeStyle = 'red';
-        overlayCtx.lineWidth = 2;
-        overlayCtx.strokeRect(centerX, centerY, 128, 128);
-
-        const now = Date.now();
-        const isLight = avgBrightness > brightnessThreshold;
-        signalHistory.push({ t: now, v: isLight });
-
-        if (signalHistory.length > 10) {
-           let result = decodeMorse(signalHistory);
-           if (result) {
-             decodedText += result;
-             document.getElementById('output').textContent = '受信結果: ' + decodedText;
-             signalHistory = [];
-           }
-         }
-
-        brightnessHistory.push(isLight ? 1 : 0);
-        if (brightnessHistory.length > 300) brightnessHistory.shift();
-
-        timelineCtx.clearRect(0, 0, timelineCanvas.width, timelineCanvas.height);
-        for (let i = 0; i < brightnessHistory.length; i++) {
-          timelineCtx.fillStyle = brightnessHistory[i] ? '#fff' : '#000';
-          timelineCtx.fillRect(i, 0, 1, timelineCanvas.height);
-        }
-
-        if (lastSignal !== null && isLight !== lastSignal) {
-          const duration = now - lastChangeTime;
-          
-          if (lastSignal) {
-            if (duration <= WORD_SPACE) {
-              // 明るい時間が終了した時
-              lightDurations.push(currentDuration);
-            }
-          } else {
-            if (duration <= WORD_SPACE) {
-              // 暗い時間が終了した時
-              darkDurations.push(currentDuration);
-            }
-          }
-
-          // 状態が変わった時間を更新
-          currentDuration = 0;
-
-          lastChangeTime = now;
-        }
-
-        // 現在の状態が続いている時間を記録
-        currentDuration += 10; // 10msごとにカウントアップ
-
-        lastSignal = isLight;
-
-        // ヒストグラムを更新
-        updateHistogram();
-
-        document.getElementById('output').textContent = '受信結果: ' + decodedText;
-        requestAnimationFrame(detectLoop);
-      }
-
-      function updateHistogram() {
-        // 明るい時間のヒストグラム
-        const lightHistogram = new Array(300).fill(0);
-        lightDurations.forEach(duration => {
-          if (duration <= WORD_SPACE) {
-            const index = Math.floor(duration / 10); // 10ms単位でカウント
-            if (index < lightHistogram.length) {
-              lightHistogram[index]++;
-            }
-          }
-        });
-
-        // 暗い時間のヒストグラム
-        const darkHistogram = new Array(300).fill(0);
-        darkDurations.forEach(duration => {
-          if (duration <= WORD_SPACE) {
-            const index = Math.floor(duration / 10); // 10ms単位でカウント
-            if (index < darkHistogram.length) {
-              darkHistogram[index]++;
-            }
-          }
-        });
-
-        // ヒストグラムの描画
-        const histogramCanvas = document.getElementById('histogramCanvas');
-        const histogramCtx = histogramCanvas.getContext('2d');
-        histogramCtx.clearRect(0, 0, histogramCanvas.width, histogramCanvas.height);
-
-        // 明るい時間のヒストグラム
-        histogramCtx.fillStyle = '#ff0000'; // 赤色
-        lightHistogram.forEach((count, index) => {
-          if (count > 0) {
-            histogramCtx.fillRect(index * 2*HIST_SIZE, histogramCanvas.height/2 - count*HIST_SIZE, 2*HIST_SIZE, count*HIST_SIZE);
-          }
-        });
-
-        // 暗い時間のヒストグラム
-        histogramCtx.fillStyle = '#0000ff'; // 青色
-        darkHistogram.forEach((count, index) => {
-          if (count > 0) {
-            histogramCtx.fillRect(index * 2*HIST_SIZE, histogramCanvas.height/2, 2*HIST_SIZE, count*HIST_SIZE);
-          }
-        });
-
-        // ドットとダッシュのしきい値
-        histogramCtx.fillStyle = '#00ff00'; // 緑色
-        histogramCtx.fillRect(dotDashThreshold/10 * 2*HIST_SIZE, 0, 2*HIST_SIZE, histogramCanvas.height);
-      }
-
-      detecting = true;
-      detectLoop();
-    }
-
-    function decodeMorse(history) {
-      const pattern = history.map(p => p.v ? '1' : '0').join('');
-      const count = pattern.match(/1+|0+/g)?.map(s => s.length) || [];
-      if (count.length < 2) return '';
-      const morse = count.map((len, i) => {
-        if (i % 2 === 0) return len < 3 ? '.' : '-';
-        return '';
-      }).join('');
-      return REVERSE_MORSE[morse] || '';
-    }
-
-    initCamera();
-  </script>
-</body>
-</html>
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background: #000;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+video {
+  width: 100%;
+  height: auto;
+  background: black;
+}
+canvas.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+.controls {
+  display: flex;
+  width: 100%;
+  padding: 1em;
+  background: #111;
+}
+input[type="text"] {
+  flex: 1;
+  font-size: 2.4em;
+  padding: 0.5em;
+  border: none;
+  border-radius: 8px;
+  margin-right: 1em;
+}
+button {
+  font-size: 2.4em;
+  padding: 0.5em 1em;
+  border: none;
+  border-radius: 8px;
+  background: #0af;
+  color: white;
+  margin-left: 0.5em;
+}
+.output-box {
+  padding: 1em;
+  width: 100%;
+  background: #111;
+  text-align: left;
+  font-size: 2.4em;
+  overflow-wrap: break-word;
+}
+.debug-box {
+  display: none;
+}
