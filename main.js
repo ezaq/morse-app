@@ -105,7 +105,7 @@ function processFrame() {
   const imageData = ctxOverlay.getImageData(centerX, centerY, detectSize, detectSize);
 
   // 明るさ判定領域の表示
-  ctxOverlay.clearRect(0, 0, overlay.width, overlay.height);
+//  ctxOverlay.clearRect(0, 0, overlay.width, overlay.height);
   ctxOverlay.strokeStyle = 'red';
   ctxOverlay.lineWidth = 2;
   ctxOverlay.strokeRect(centerX, centerY, 128, 128);
