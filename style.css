@@ -43,6 +43,7 @@ video, canvas {
 
 input[type="text"] {
   flex-grow: 1;
+  width: 100px;
   padding: 5px;
   font-size: inherit;
 }
