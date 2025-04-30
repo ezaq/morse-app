@@ -107,7 +107,7 @@ function processFrame() {
   // 明るさ判定領域の表示
   ctxOverlay.strokeStyle = 'red';
   ctxOverlay.lineWidth = 2;
-  ctxOverlay.strokeRect(centerX, centerY, 128, 128);
+  ctxOverlay.strokeRect(centerX, centerY, detectSize, detectSize);
 
   // 明るさ計算
   let brightnessSum = 0;
