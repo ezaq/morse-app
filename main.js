@@ -281,7 +281,7 @@ clearBtn.addEventListener("click", () => {
 });
 
 sendBtn.addEventListener("click", () => {
-  const text = input.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const text = input.value.toUpperCase().replace(/\s+/g, " ").replace(/[^A-Z0-9 ]/g, "");
   console.log("送信:", text);
   blinkMorse(text);
 });
