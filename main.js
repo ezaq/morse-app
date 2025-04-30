@@ -122,8 +122,10 @@ function processFrame() {
     map.push(brightness)
   }
   if (brightnessMap.length){
-    const diff = map.map((value, i) => (Math.abs(brightnessMap[i] - value)));
-    thresholdValue.textContent=diff.reduce((a,v)=>(Math.max(s,v)), 0);
+    const diff = map.map((value, i) => (brightnessMap[i] - value));
+    const min = Math.min(...diff);
+    const max = Math.max(...diff);
+    thresholdValue.textContent=`${max}/${min}`;
   }
   brightnessMap = map;
   const avgBrightness = brightnessSum / (imageData.data.length / 4);
