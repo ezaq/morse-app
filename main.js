@@ -234,6 +234,7 @@ decodedText += (duration < dotDuration) ? "." : "-";
       lightDurations.push(duration);
     } else {
       // 暗い時間が終了した時
+decodedText += (duration < dotDuration) ? "+" : "|";
       if (duration > dotDuration) {
         decodedText += codeMorseMap[morseText] ?? "?";
         if (duration > dotDuration * 3) {
