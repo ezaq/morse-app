@@ -248,7 +248,7 @@ function processFrame() {
   lastSignal = isLight;
   drawHistogram();
 
-  output.textContent = `受信結果: ${decodedText.trim()}`;
+  output.textContent = `受信結果: ${morseText.trim()}\n${decodedText.trim()}`;
 }
 
 // イベントリスナー
