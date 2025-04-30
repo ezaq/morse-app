@@ -118,9 +118,10 @@ function drawHistogram() {
   const HIST_SIZE = 8;
   const width = histogramCanvas.width;
   const height = histogramCanvas.height;
+  const arraySize = Math.ceil(width/HIST_SIZE);
 
   // 明るい時間のヒストグラム
-  const lightHistogram = new Array(width/HIST_SIZE).fill(0);
+  const lightHistogram = new Array(arraySize).fill(0);
   lightDurations.forEach(duration => {
     const index = Math.floor(duration / 10); // 10ms単位でカウント
     if (index < lightHistogram.length) {
@@ -129,7 +130,7 @@ function drawHistogram() {
   });
 
   // 暗い時間のヒストグラム
-  const darkHistogram = new Array(width/HIST_SIZE).fill(0);
+  const darkHistogram = new Array(arraySize).fill(0);
   darkDurations.forEach(duration => {
     const index = Math.floor(duration / 10); // 10ms単位でカウント
     if (index < darkHistogram.length) {
