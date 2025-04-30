@@ -39,6 +39,13 @@ let threshold = parseInt(thresholdSlider.value, 10);
 let capturing = true;
 let videoTrack = null;
 
+let signalHistory = [];
+let lastSignal = null;
+let lastChangeTime = Date.now();
+
+let lightDurations = [];
+let darkDurations = [];
+
 // モールス信号辞書（送信用）
 const morseCodeMap = {
   A: ".-",    B: "-...",  C: "-.-.",  D: "-..",
@@ -52,6 +59,16 @@ const morseCodeMap = {
   4: "....-", 5: ".....", 6: "-....", 7: "--...",
   8: "---..", 9: "----."
 };
+
+// モールス信号逆引き辞書（受信用）
+const codeMorseMap = Object.fromEntries(Object.entries(morseCodeMap).map(([k, v]) => [v, k]));
+
+const UNIT = 60000 / 10 / 50;
+const DOT = UNIT;
+const DASH = UNIT * 3;
+const SPACE = UNIT;
+const LETTER_SPACE = UNIT * 3;
+const WORD_SPACE = UNIT * 7;
 
 // カメラの起動
 async function initCamera() {
@@ -69,12 +86,46 @@ async function initCamera() {
 }
 
 // ヒストグラム描画（以前の表示方法に戻す）
-function drawHistogram(data) {
+function drawHistogram() {
+  const HIST_SIZE = 8;
+  const width = histogramCanvas.width;
+  const height = histogramCanvas.height;
+
+  // 明るい時間のヒストグラム
+  const lightHistogram = new Array(width/HIST_SIZE).fill(0);
+  lightDurations.forEach(duration => {
+    const index = Math.floor(duration / 10); // 10ms単位でカウント
+    if (index < lightHistogram.length) {
+      lightHistogram[index]++;
+    }
+  });
+
+  // 暗い時間のヒストグラム
+  const darkHistogram = new Array(width/HIST_SIZE).fill(0);
+  darkDurations.forEach(duration => {
+    const index = Math.floor(duration / 10); // 10ms単位でカウント
+    if (index < darkHistogram.length) {
+      darkHistogram[index]++;
+    }
+  });
+
+  // ヒストグラムの描画
   ctxHistogram.clearRect(0, 0, histogramCanvas.width, histogramCanvas.height);
-  ctxHistogram.fillStyle = "gray";
-  const binWidth = histogramCanvas.width / data.length;
-  data.forEach((val, i) => {
-    ctxHistogram.fillRect(i * binWidth, histogramCanvas.height - val, binWidth, val);
+
+  // 明るい時間のヒストグラム
+  ctxHistogram.fillStyle = '#ff0000'; // 赤色
+  lightHistogram.forEach((count, index) => {
+    if (count > 0) {
+      ctxHistogram.fillRect(index * HIST_SIZE, histogramCanvas.height/2 - count*HIST_SIZE, HIST_SIZE, count*HIST_SIZE);
+    }
+  });
+
+  // 暗い時間のヒストグラム
+  ctxHistogram.fillStyle = '#0000ff'; // 青色
+  darkHistogram.forEach((count, index) => {
+    if (count > 0) {
+      ctxHistogram.fillRect(index * HIST_SIZE, histogramCanvas.height/2, HIST_SIZE, count*HIST_SIZE);
+    }
   });
 }
 
@@ -123,23 +174,33 @@ function processFrame() {
   }
   const avgBrightness = brightnessSum / (imageData.data.length / 4);
 
-  // タイムラインデータ更新
+  // 明滅データ更新
+  const now = Date.now();
   const isLight = avgBrightness > threshold;
+  signalHistory.push({ t: now, v: isLight });
+
+  // タイムラインデータ更新
   brightnessHistory.push(isLight);
   if (brightnessHistory.length > brightnessTimeline.width) {
     brightnessHistory.shift();
   }
   drawTimeline();
 
-  // ヒストグラム更新
-  const histogramBins = new Array(256).fill(0);
-  for (let i = 0; i < imageData.data.length; i += 4) {
-    const brightness = Math.floor(0.299 * imageData.data[i] + 0.587 * imageData.data[i + 1] + 0.114 * imageData.data[i + 2]);
-    histogramBins[brightness]++;
+  // 間隔ヒストグラム更新
+  if (lastSignal !== null && isLight !== lastSignal) {
+    const duration = now - lastChangeTime;
+    if (lastSignal) {
+      // 明るい時間が終了した時
+      lightDurations.push(duration);
+    } else {
+      // 暗い時間が終了した時
+      darkDurations.push(duration);
+    }
+    // 状態が変わった時間を更新
+    lastSignal = isLight;
+    lastChangeTime = now;
   }
-  const maxVal = Math.max(...histogramBins);
-  const scaledBins = histogramBins.map(v => (v / maxVal) * histogramCanvas.height);
-  drawHistogram(scaledBins);
+  drawHistogram();
 
   // しきい値による判定（例: 点灯しているか）
   if (avgBrightness > threshold) {
@@ -159,6 +220,8 @@ thresholdSlider.addEventListener("input", () => {
 clearBtn.addEventListener("click", () => {
   decodedText = "";
   output.textContent = "受信結果: ";
+  lightDurations = [];
+  darkDurations = [];
 });
 
 // モールス信号をLEDで点滅表示（オーバーレイ）
