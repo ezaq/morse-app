@@ -2,7 +2,7 @@
 // モールス信号送受信アプリ - リファクタ済み・コメント付き
 
 // ▼ バージョン番号をここで管理
-const APP_VERSION = "0.0.6";
+const APP_VERSION = "0.0.7";
 
 // コンソールにバージョンを表示
 console.log(`モールス信号アプリ バージョン: ${APP_VERSION}`);
@@ -63,7 +63,8 @@ const morseCodeMap = {
 // モールス信号逆引き辞書（受信用）
 const codeMorseMap = Object.fromEntries(Object.entries(morseCodeMap).map(([k, v]) => [v, k]));
 
-const UNIT = 60000 / 10 / 50;
+const CPM = 10;
+const UNIT = 60000 / CPM / 50;
 const DOT = UNIT;
 const DASH = UNIT * 3;
 const SPACE = UNIT;
@@ -78,11 +79,10 @@ async function initCamera() {
     videoTrack = stream.getVideoTracks()[0];
     video.onloadedmetadata = () => {
       video.play();
-//      startLightDetection(video);
     };
   } catch (error) {
     console.error("カメラの起動に失敗:", error);
-  };
+  }
 }
 
 // sleep
