@@ -258,7 +258,7 @@ thresholdSlider.addEventListener("input", () => {
 });
 
 dThresholdSlider.addEventListener("input", () => {
-  dotDuration = parseInt(dThresholdSlider.value, 100);
+  dotDuration = parseInt(dThresholdSlider.value, 10);
   dThresholdValue.textContent = dotDuration
 });
 
