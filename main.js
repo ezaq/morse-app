@@ -49,7 +49,7 @@ let lastChangeTime = Date.now();
 let lightDurations = [];
 let darkDurations = [];
 
-let dotDuration = parseInt(dThresholdSlider.value, 100);
+let dotDuration = parseInt(dThresholdSlider.value, 10);
 
 // モールス信号辞書（送信用）
 const morseCodeMap = {
@@ -230,6 +230,7 @@ function processFrame() {
     if (lastSignal) {
       // 明るい時間が終了した時
       morseText += (duration < dotDuration) ? "." : "-";
+decodedText += (duration < dotDuration) ? "." : "-";
       lightDurations.push(duration);
     } else {
       // 暗い時間が終了した時
@@ -248,7 +249,7 @@ function processFrame() {
   lastSignal = isLight;
   drawHistogram();
 
-  output.textContent = `受信結果: ${morseText.trim()}\n${decodedText.trim()}`;
+  output.textContent = `受信結果: ${decodedText.trim()}`;
 }
 
 // イベントリスナー
