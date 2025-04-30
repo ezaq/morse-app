@@ -31,6 +31,10 @@
   <!-- 明るさタイムラインとヒストグラム -->
   <canvas id="brightnessTimeline"></canvas>
   <canvas id="histogramCanvas"></canvas>
+  <div class="controls column">
+    <label class="label">長短間隔: <span id="dThresholdValue">100</span></label>
+    <input type="range" id="dThresholdSlider" min="0" max="500" value="200">
+  </div>
 
   <!-- バージョン表示 -->
   <div id="versionLabel" class="version-label">none</div>

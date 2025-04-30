@@ -31,6 +31,8 @@ const brightnessTimeline = document.getElementById("brightnessTimeline");
 const histogramCanvas = document.getElementById("histogramCanvas");
 const ctxTimeline = brightnessTimeline.getContext("2d");
 const ctxHistogram = histogramCanvas.getContext("2d");
+const dThresholdSlider = document.getElementById("dThresholdSlider");
+const dThresholdValue = document.getElementById("dThresholdValue");
 
 // 初期設定
 let brightnessHistory = [];
@@ -47,7 +49,7 @@ let lastChangeTime = Date.now();
 let lightDurations = [];
 let darkDurations = [];
 
-let dotDuration = 100;
+let dotDuration = parseInt(dThresholdSlider.value, 100);
 
 // モールス信号辞書（送信用）
 const morseCodeMap = {
@@ -118,7 +120,7 @@ async function blinkMorse(text) {
 
 // ヒストグラム描画
 function drawHistogram() {
-  const HIST_SIZE = 8;
+  const HIST_SIZE = 4;
   const width = histogramCanvas.width;
   const height = histogramCanvas.height;
   const arraySize = Math.ceil(width/HIST_SIZE);
@@ -254,6 +256,12 @@ thresholdSlider.addEventListener("input", () => {
   threshold = parseInt(thresholdSlider.value, 10);
   thresholdValue.textContent = threshold;
 });
+
+dThresholdSlider.addEventListener("input", () => {
+  dotDuration = parseInt(dThresholdSlider.value, 100);
+  dThresholdValue.textContent = dotDuration
+});
+
 
 clearBtn.addEventListener("click", () => {
   morseText = "";

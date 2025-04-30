@@ -75,6 +75,12 @@ button {
   height: 200px;
 }
 
+#dThresholdValue {
+  margin-left: 10px;
+  font-weight: bold;
+  color: yellow;
+}
+
 .version-label {
   color: #eee;
   text-align: right;
