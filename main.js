@@ -85,7 +85,35 @@ async function initCamera() {
   };
 }
 
-// ヒストグラム描画（以前の表示方法に戻す）
+// sleep
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// モールス信号をLEDで点滅表示
+async function blinkMorse(text) {
+  text = text.toUpperCase();
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    if (char === ' ') {
+      await sleep(WORD_SPACE);
+      continue;
+    }
+    const code = morseCodeMap[char];
+    if (!code) continue;
+
+    for (let j = 0; j < code.length; j++) {
+      const signal = code[j];
+      await videoTrack.applyConstraints({ advanced: [{ torch: true }] });
+      await sleep(signal === '.' ? DOT : DASH);
+      await videoTrack.applyConstraints({ advanced: [{ torch: false }] });
+      if (j < code.length - 1) await sleep(SPACE);
+    }
+    await sleep(LETTER_SPACE);
+  }
+}
+
+// ヒストグラム描画
 function drawHistogram() {
   const HIST_SIZE = 8;
   const width = histogramCanvas.width;
@@ -224,38 +252,10 @@ clearBtn.addEventListener("click", () => {
   darkDurations = [];
 });
 
-// モールス信号をLEDで点滅表示（オーバーレイ）
-function flashMorseCode(morse) {
-  let i = 0;
-  const unit = 200; // 基本単位（ms）
-
-  function next() {
-    if (i >= morse.length) {
-      ctxOverlay.clearRect(0, 0, overlay.width, overlay.height);
-      return;
-    }
-    const symbol = morse[i];
-    ctxOverlay.clearRect(0, 0, overlay.width, overlay.height);
-    if (symbol === "." || symbol === "-") {
-      ctxOverlay.fillStyle = "white";
-      ctxOverlay.fillRect(0, 0, overlay.width, overlay.height);
-    }
-    const delay = symbol === "." ? unit : symbol === "-" ? unit * 3 : unit;
-    i++;
-    setTimeout(() => {
-      ctxOverlay.clearRect(0, 0, overlay.width, overlay.height);
-      setTimeout(next, unit); // 次の記号へ（間隔）
-    }, delay);
-  }
-  next();
-}
-
 sendBtn.addEventListener("click", () => {
   const text = input.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
   console.log("送信:", text);
-  // テキストをモールス信号に変換
-  const morse = text.split("").map(char => morseCodeMap[char] || "").join(" ");
-  flashMorseCode(morse);
+  blinkMorse(text);
 });
 
 // フレーム更新ループ
