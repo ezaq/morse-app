@@ -34,6 +34,7 @@ const ctxHistogram = histogramCanvas.getContext("2d");
 
 // 初期設定
 let brightnessHistory = [];
+let morseText = "";
 let decodedText = "";
 let threshold = parseInt(thresholdSlider.value, 10);
 let capturing = true;
@@ -45,6 +46,8 @@ let lastChangeTime = Date.now();
 
 let lightDurations = [];
 let darkDurations = [];
+
+let dotDuration = 100;
 
 // モールス信号辞書（送信用）
 const morseCodeMap = {
@@ -206,7 +209,6 @@ function processFrame() {
   // 明滅データ更新
   const now = Date.now();
   const isLight = avgBrightness > threshold;
-  signalHistory.push({ t: now, v: isLight });
 
   // タイムラインデータ更新
   brightnessHistory.push(isLight);
@@ -215,14 +217,22 @@ function processFrame() {
   }
   drawTimeline();
 
-  // 間隔ヒストグラム更新
+  // 受信解析＆間隔ヒストグラム更新
   if (lastSignal !== null && isLight !== lastSignal) {
     const duration = now - lastChangeTime;
     if (lastSignal) {
       // 明るい時間が終了した時
+      morseText += (duration < dotDuration) ? "." : "-";
       lightDurations.push(duration);
     } else {
       // 暗い時間が終了した時
+      if (duration > dotDuration * 3) {
+        decodedText += codeMorseMap[morseText] ?? "?";
+        if (duration > dotDuration * 7) {
+          decodedText += " ";
+        }
+        morseText = "";
+      }
       darkDurations.push(duration);
     }
     // 状態が変わった時間を更新
@@ -231,13 +241,7 @@ function processFrame() {
   lastSignal = isLight;
   drawHistogram();
 
-  // しきい値による判定（例: 点灯しているか）
-  if (avgBrightness > threshold) {
-    decodedText += "."; // 明るい → 点
-  } else {
-    decodedText += " "; // 暗い → 区切り
-  }
-//  output.textContent = `受信結果: ${decodedText.trim()}`;
+  output.textContent = `受信結果: ${decodedText.trim()}`;
 }
 
 // イベントリスナー
@@ -247,6 +251,7 @@ thresholdSlider.addEventListener("input", () => {
 });
 
 clearBtn.addEventListener("click", () => {
+  morseText = "";
   decodedText = "";
   output.textContent = "受信結果: ";
   lightDurations = [];
