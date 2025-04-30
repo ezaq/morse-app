@@ -2,7 +2,7 @@
 // モールス信号送受信アプリ - リファクタ済み・コメント付き
 
 // ▼ バージョン番号をここで管理
-const APP_VERSION = "0.0.7";
+const APP_VERSION = "0.0.8";
 
 // コンソールにバージョンを表示
 console.log(`モールス信号アプリ バージョン: ${APP_VERSION}`);
@@ -143,6 +143,11 @@ function drawHistogram() {
 
   // ヒストグラムの描画
   ctxHistogram.clearRect(0, 0, histogramCanvas.width, histogramCanvas.height);
+
+  // しきい値
+  ctxHistogram.fillStyle = '#00ff00'; // 緑色
+  let index = Math.floor(dotDuration / 10);
+  ctxHistogram.fillRect(index * HIST_SIZE, 0, HIST_SIZE, histogramCanvas.height);
 
   // 明るい時間のヒストグラム
   ctxHistogram.fillStyle = '#ff0000'; // 赤色

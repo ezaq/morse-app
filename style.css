@@ -66,12 +66,12 @@ button {
 }
 
 #brightnessTimeline{
-  width: 100%;
+  width: 600px;
   height: 40px;
 }
 
 #histogramCanvas{
-  width: 100%;
+  width: 600px;
   height: 200px;
 }
 
