@@ -33,7 +33,6 @@ const ctxTimeline = brightnessTimeline.getContext("2d");
 const ctxHistogram = histogramCanvas.getContext("2d");
 
 // 初期設定
-let brightnessMap = [];
 let brightnessHistory = [];
 let decodedText = "";
 let threshold = parseInt(thresholdSlider.value, 10);
@@ -112,23 +111,15 @@ function processFrame() {
 
   // 明るさ計算
   let brightnessSum = 0;
-  const map = [];
   for (let i = 0; i < imageData.data.length; i += 4) {
     const r = imageData.data[i];
     const g = imageData.data[i + 1];
     const b = imageData.data[i + 2];
     const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
     brightnessSum += brightness;
-    map.push(brightness)
   }
-  if (brightnessMap.length){
-    const diff = map.map((value, i) => (brightnessMap[i] - value));
-    const min = Math.min(...diff);
-    const max = Math.max(...diff);
-    thresholdValue.textContent=`${max.toFixed(1)}/${min.toFixed(1)}`;
-  }
-  brightnessMap = map;
   const avgBrightness = brightnessSum / (imageData.data.length / 4);
+  thresholdValue.textContent=`${imageData.data.length/4}\n:${avgBrightness.toFixed(1)}/${brightnessSum.toFixed(1)}`;
 
   // タイムラインデータ更新
   const isLight = avgBrightness > threshold;
