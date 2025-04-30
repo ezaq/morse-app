@@ -121,7 +121,7 @@ function processFrame() {
     brightnessMax = Math.max(brightness, brightnessMax);
   }
   const avgBrightness = brightnessSum / (imageData.data.length / 4);
-thresholdValue.textContent=`${brightnessMax.toFixed(2)}/${avgBrightness.toFixed(2)}`;
+thresholdValue.textContent=`${brightnessMax.toFixed(1)}-${avgBrightness.toFixed(1)}=${(brightnessMax-avgBrightness).toFixed(1)}`;
 
   // タイムラインデータ更新
   const isLight = avgBrightness > threshold;
