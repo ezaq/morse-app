@@ -80,10 +80,13 @@ function drawHistogram(data) {
 
 // タイムライン描画
 function drawTimeline() {
-  ctxTimeline.clearRect(0, 0, brightnessTimeline.width, brightnessTimeline.height);
-  for (let i = 0; i < brightnessHistory.length; i++) {
+  const width = brightnessTimeline.width;
+  const height = brightnessTimeline.height;
+  const length = brightnessHistory.length;
+  ctxTimeline.clearRect(0, 0, width, height);
+  for (let i = 0, x = width - length; i < length; i++, x++) {
     ctxTimeline.fillStyle = brightnessHistory[i] ? '#fff' : '#000';
-    ctxTimeline.fillRect(i, 0, 1, brightnessTimeline.height);
+    ctxTimeline.fillRect(x, 0, 1, height);
   }
 }
 
@@ -119,7 +122,6 @@ function processFrame() {
     brightnessSum += brightness;
   }
   const avgBrightness = brightnessSum / (imageData.data.length / 4);
-  thresholdValue.textContent=`${imageData.data.length/4}\n:${avgBrightness.toFixed(1)}/${brightnessSum.toFixed(1)}`;
 
   // タイムラインデータ更新
   const isLight = avgBrightness > threshold;
