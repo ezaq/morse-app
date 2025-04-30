@@ -197,9 +197,9 @@ function processFrame() {
       darkDurations.push(duration);
     }
     // 状態が変わった時間を更新
-    lastSignal = isLight;
     lastChangeTime = now;
   }
+  lastSignal = isLight;
   drawHistogram();
 
   // しきい値による判定（例: 点灯しているか）
