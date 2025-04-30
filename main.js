@@ -239,10 +239,8 @@ function processFrame() {
       }
       // 状態が変わった時間を更新
       lastChangeTime = now;
-    }
-
-    if (!isLight) {
-      // デコード
+    } else if (!isLight) {
+      // 暗い時間が続いたらデコード
       if ((duration > dotDuration) && (morseText.length > 0)) {
         // 文字区切り
         decodedText += codeMorseMap[morseText] ?? "?";
@@ -252,6 +250,8 @@ function processFrame() {
         // 単語区切り
         decodedText += " ";
       }
+    } else {
+      // 明るい時間が続いても何もしない
     }
   }
   lastSignal = isLight;
