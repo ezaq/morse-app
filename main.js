@@ -111,14 +111,16 @@ function processFrame() {
 
   // 明るさ計算
   let brightnessSum = 0;
+  let brightnessMax = 0;
   for (let i = 0; i < imageData.data.length; i += 4) {
     const r = imageData.data[i];
     const g = imageData.data[i + 1];
     const b = imageData.data[i + 2];
     const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
     brightnessSum += brightness;
+    brightnessMax = Math.max(brightness, brightnessMax);
   }
-  const avgBrightness = brightnessSum / (imageData.data.length / 4);
+  const avgBrightness = brightnessMax;//brightnessSum / (imageData.data.length / 4);
 thresholdValue.textContent=avgBrightness;
 
   // タイムラインデータ更新
