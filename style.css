@@ -41,7 +41,7 @@ video, canvas {
   margin: 10px 0;
 }
 
-input[type="text"] {
+input {
   flex-grow: 1;
   width: 100px;
   padding: 5px;
@@ -63,6 +63,16 @@ button {
   margin-left: 10px;
   font-weight: bold;
   color: yellow;
+}
+
+#brightnessTimeline{
+  width: 100%;
+  height: 40px;
+}
+
+#histogramCanvas{
+  width: 100%;
+  height: 200px;
 }
 
 .version-label {
