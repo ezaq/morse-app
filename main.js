@@ -99,13 +99,12 @@ function processFrame() {
   overlay.height = height;
   ctxOverlay.drawImage(video, 0, 0, width, height);
 
-  const detectSize = 128;
+  const detectSize = 64;
   const centerX = Math.floor((overlay.width - detectSize) / 2);
   const centerY = Math.floor((overlay.height - detectSize) / 2);
   const imageData = ctxOverlay.getImageData(centerX, centerY, detectSize, detectSize);
 
   // 明るさ判定領域の表示
-//  ctxOverlay.clearRect(0, 0, overlay.width, overlay.height);
   ctxOverlay.strokeStyle = 'red';
   ctxOverlay.lineWidth = 2;
   ctxOverlay.strokeRect(centerX, centerY, 128, 128);
@@ -120,6 +119,7 @@ function processFrame() {
     brightnessSum += brightness;
   }
   const avgBrightness = brightnessSum / (imageData.data.length / 4);
+thresholdValue.textContent=avgBrightness;
 
   // タイムラインデータ更新
   const isLight = avgBrightness > threshold;
