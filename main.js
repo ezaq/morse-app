@@ -225,27 +225,34 @@ function processFrame() {
   drawTimeline();
 
   // 受信解析＆間隔ヒストグラム更新
-  if (lastSignal !== null && isLight !== lastSignal) {
+  if (lastSignal !== null) {
     const duration = now - lastChangeTime;
-    if (lastSignal) {
-      // 明るい時間が終了した時
-      morseText += (duration < dotDuration) ? "." : "-";
-decodedText += (duration < dotDuration) ? "." : "-";
-      lightDurations.push(duration);
-    } else {
-      // 暗い時間が終了した時
-decodedText += (duration < dotDuration) ? "+" : "|";
-      if (duration > dotDuration) {
+    if (isLight !== lastSignal) {
+      // 変更があった場合
+      if (lastSignal) {
+        // 明るい時間が終了した時
+        morseText += (duration < dotDuration) ? "." : "-";
+        lightDurations.push(duration);
+      } else {
+        // 暗い時間が終了した時
+        darkDurations.push(duration);
+      }
+      // 状態が変わった時間を更新
+      lastChangeTime = now;
+    }
+
+    if (!isLight) {
+      // デコード
+      if ((duration > dotDuration) && (morseText.length > 0)) {
+        // 文字区切り
         decodedText += codeMorseMap[morseText] ?? "?";
-        if (duration > dotDuration * 3) {
-          decodedText += " ";
-        }
         morseText = "";
       }
-      darkDurations.push(duration);
+      if ((duration > dotDuration * 3) && (decodedText.at(-1) != " ")) {
+        // 単語区切り
+        decodedText += " ";
+      }
     }
-    // 状態が変わった時間を更新
-    lastChangeTime = now;
   }
   lastSignal = isLight;
   drawHistogram();
