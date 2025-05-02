@@ -25,8 +25,10 @@ const input = document.getElementById("input");
 const sendBtn = document.getElementById("sendBtn");
 const clearBtn = document.getElementById("clearBtn");
 const output = document.getElementById("output");
-const gainSlider = document.getElementById("gainSlider");
-const gainValue = document.getElementById("gainValue");
+const brightnessLevelSlider = document.getElementById("brightnessLevelSlider");
+const brightnessLevelValue = document.getElementById("brightnessLevelValue");
+const brightnessGainSlider = document.getElementById("brightnessGainSlider");
+const brightnessGainlValue = document.getElementById("brightnessGainValue");
 const brightnessTimeline = document.getElementById("brightnessTimeline");
 const brightnessHistogram = document.getElementById("brightnessHistogram");
 const histogramCanvas = document.getElementById("histogramCanvas");
@@ -38,10 +40,11 @@ const dThresholdValue = document.getElementById("dThresholdValue");
 
 // 初期設定
 let brightnessHistory = [];
-let brightThreshold = 200;
+let brightnessLevel = 50;
+let brightnessGain = 200;
 let morseText = "";
 let decodedText = "";
-let gain = parseInt(gainSlider.value, 10);
+let brightnessLevel = parseInt(brightnessLevelSlider.value, 10);
 let capturing = true;
 let videoTrack = null;
 
@@ -182,11 +185,11 @@ function drawTimeline() {
     ctxTimeline.fillRect(x, 0, 1, height);
 
     ctxTimeline.fillStyle = "rgb(255 128 0 / 50%)";
-    let h = brightnessHistory[i].val; h = Math.min(Math.max(0,h),height);
+    const h = Math.min(Math.max(0, brightnessHistory[i].val), height);
     ctxTimeline.fillRect(x, height-h, 1, h);
 
-    ctxTimeline.fillStyle = "#00f";
-    h = (101 - gain);
+    ctxTimeline.fillStyle = "#0f0";
+    h = brightnessLevel;
     ctxTimeline.fillRect(x, height-h, 1, 1);
   }
 }
@@ -200,7 +203,7 @@ function drawBrightnessHistogram(bdata) {
   ctxBrightnessHistogram.clearRect(0, 0, width, height);
   // しきい値
   ctxBrightnessHistogram.fillStyle = '#00ff00'; // 緑色
-  let index = brightThreshold;
+  let index = brightnessGain;
   ctxBrightnessHistogram.fillRect(index * size, 0, size, height);
 
   // 明度ヒストグラム
@@ -242,7 +245,7 @@ function processFrame() {
     const g = imageData.data[i + 1];
     const b = imageData.data[i + 2];
     const brightness = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
-    if(brightness >= brightThreshold){
+    if(brightness >= brightnessGain){
       brightnessSum += 1;
     }
     bdata[brightness] += 1;
@@ -251,7 +254,7 @@ function processFrame() {
 
   // 明滅データ更新
   const now = Date.now();
-  const isLight = brightnessSum > (101 - gain);
+  const isLight = brightnessSum >= brightnessLevel;
 
   // タイムラインデータ更新
   brightnessHistory.push({isLight, val:brightnessSum});
@@ -293,15 +296,23 @@ function processFrame() {
   lastSignal = isLight;
   drawHistogram();
 
-  output.textContent = `受信結果: ${decodedText.trim()}`;
+  output.value = `${decodedText.trim()}`;
 }
 
 // イベントリスナー
-gainSlider.addEventListener("input", () => {
-  gain = parseInt(gainSlider.value, 10);
-  gainValue.textContent = gain;
+// レベルスライダー
+brightnessLevelSlider.addEventListener("input", () => {
+  brightnessLevel = parseInt(brightnessLevelSlider.value, 10);
+  brightnessLevelValue.textContent = brightnessLevel;
 });
 
+// 感度スライダー
+brightnessGainSlider.addEventListener("input", () => {
+  brightnessGain = parseInt(brightnessGainSlider.value, 10);
+  brightnessGainValue.textContent = brightnessGain;
+});
+
+// 間隔スライダー
 dThresholdSlider.addEventListener("input", () => {
   dotDuration = parseInt(dThresholdSlider.value, 10);
   dThresholdValue.textContent = dotDuration
@@ -311,7 +322,7 @@ dThresholdSlider.addEventListener("input", () => {
 clearBtn.addEventListener("click", () => {
   morseText = "";
   decodedText = "";
-  output.textContent = "受信結果: ";
+  output.value = `${decodedText.trim()}`;
   lightDurations = [];
   darkDurations = [];
 });

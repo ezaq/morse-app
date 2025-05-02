@@ -57,9 +57,14 @@ button {
 #output {
   margin-top: 10px;
   font-weight: bold;
+  flex-grow: 1;
 }
 
-#gainValue {
+.settingTitle {
+  flex-grow: 0;
+}
+
+.settingValue {
   margin-left: 10px;
   font-weight: bold;
   color: yellow;

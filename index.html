@@ -19,23 +19,33 @@
     <button id="clearBtn">クリア</button>
   </div>
 
-  <!-- 感度スライダー制御パネル -->
-  <div class="controls column">
-    <label class="label">感度: <span id="gainValue">50</span></label>
-    <input type="range" id="gainSlider" min="1" max="100" value="50">
+  <!-- 受信出力表示領域 -->
+  <div class="controls">
+    <label class="settingTitle">受信結果:</label>
+    <textarea id="output"/>
   </div>
 
-  <!-- 受信出力表示領域 -->
-  <div class="output-box" id="output">受信結果: </div>
-
-  <!-- 明るさタイムラインとヒストグラム -->
+  <!-- レベルスライダー制御パネル -->
   <canvas id="brightnessTimeline"></canvas>
+  <div class="controls">
+    <label class="settingTitle">レベル: <span class="settingValue">50</span></label>
+    <input type="range" id="brightnessLevelSlider" min="1" max="100" value="50">
+  </div>
+
+  <!-- 感度スライダー制御パネル -->
   <canvas id="brightnessHistogram"></canvas>
+  <div class="controls">
+    <label class="settingTitle">感度: <span class="settingValue">50</span></label>
+    <input type="range" id="brightnessGainSlider" min="0" max="255" value="200">
+  </div>
+
+  <!-- 間隔ヒストグラム -->
   <canvas id="histogramCanvas"></canvas>
   <div class="controls column">
     <label class="label">長短間隔: <span id="dThresholdValue">230</span></label>
     <input type="range" id="dThresholdSlider" min="0" max="500" value="230">
   </div>
+
 
   <!-- バージョン表示 -->
   <div id="versionLabel" class="version-label">none</div>
