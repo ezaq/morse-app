@@ -179,7 +179,7 @@ function drawTimeline() {
   for (let i = 0, x = width - length; i < length; i++, x++) {
     ctxTimeline.fillStyle = brightnessHistory[i].isLight ? '#fff' : '#000';
     ctxTimeline.fillRect(x, 0, 1, height);
-    ctxTimeline.fillStyle = '#8fa0';
+    ctxTimeline.fillStyle = "rgb(255 128 0 / 50%)";;
     let h = brightnessHistory[i].val/2; h = Math.max(Math.min(0,h),height);
     ctxTimeline.fillRect(x, height-h, 1, h);
   }
