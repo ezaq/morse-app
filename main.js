@@ -2,7 +2,7 @@
 // モールス信号送受信アプリ - リファクタ済み・コメント付き
 
 // ▼ バージョン番号をここで管理
-const APP_VERSION = "0.0.8";
+const APP_VERSION = "0.1.0";
 
 // コンソールにバージョンを表示
 console.log(`モールス信号アプリ バージョン: ${APP_VERSION}`);
@@ -25,8 +25,8 @@ const input = document.getElementById("input");
 const sendBtn = document.getElementById("sendBtn");
 const clearBtn = document.getElementById("clearBtn");
 const output = document.getElementById("output");
-const thresholdSlider = document.getElementById("thresholdSlider");
-const thresholdValue = document.getElementById("thresholdValue");
+const gainSlider = document.getElementById("gainSlider");
+const gainValue = document.getElementById("gainValue");
 const brightnessTimeline = document.getElementById("brightnessTimeline");
 const brightnessHistogram = document.getElementById("brightnessHistogram");
 const histogramCanvas = document.getElementById("histogramCanvas");
@@ -38,9 +38,10 @@ const dThresholdValue = document.getElementById("dThresholdValue");
 
 // 初期設定
 let brightnessHistory = [];
+let brightThreshold = 250;
 let morseText = "";
 let decodedText = "";
-let threshold = parseInt(thresholdSlider.value, 10);
+let gain = parseInt(gainSlider.value, 10);
 let capturing = true;
 let videoTrack = null;
 
@@ -180,7 +181,7 @@ function drawTimeline() {
     ctxTimeline.fillStyle = brightnessHistory[i].isLight ? '#fff' : '#000';
     ctxTimeline.fillRect(x, 0, 1, height);
     ctxTimeline.fillStyle = "rgb(255 128 0 / 50%)";;
-    let h = brightnessHistory[i].val/2; h = Math.min(Math.max(0,h),height);
+    let h = brightnessHistory[i].val; h = Math.min(Math.max(0,h),height);
     ctxTimeline.fillRect(x, height-h, 1, h);
   }
 }
@@ -194,7 +195,7 @@ function drawBrightnessHistogram(bdata) {
   ctxBrightnessHistogram.clearRect(0, 0, width, height);
   // しきい値
   ctxBrightnessHistogram.fillStyle = '#00ff00'; // 緑色
-  let index = threshold;
+  let index = brightThreshold;
   ctxBrightnessHistogram.fillRect(index * size, 0, size, height);
 
   // 明度ヒストグラム
@@ -235,19 +236,17 @@ function processFrame() {
     const r = imageData.data[i];
     const g = imageData.data[i + 1];
     const b = imageData.data[i + 2];
-    const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
-    if(brightness >= 250){
+    const brightness = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+    if(brightness >= brightThreshold){
       brightnessSum += 1;
     }
-    //brightnessSum += brightness;
-    bdata[parseInt(brightness)] += 1;
+    bdata[brightness] += 1;
   }
-  const avgBrightness = brightnessSum;// / (imageData.data.length / 4);
   drawBrightnessHistogram(bdata)
 
   // 明滅データ更新
   const now = Date.now();
-  const isLight = avgBrightness > threshold;
+  const isLight = brightnessSum > (101 - gain);
 
   // タイムラインデータ更新
   brightnessHistory.push({isLight, val:brightnessSum});
@@ -293,9 +292,9 @@ function processFrame() {
 }
 
 // イベントリスナー
-thresholdSlider.addEventListener("input", () => {
-  threshold = parseInt(thresholdSlider.value, 10);
-  thresholdValue.textContent = threshold;
+gainSlider.addEventListener("input", () => {
+  gain = parseInt(gainSlider.value, 10);
+  gainValue.textContent = gain;
 });
 
 dThresholdSlider.addEventListener("input", () => {
