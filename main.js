@@ -41,7 +41,7 @@ const dThresholdValue = document.getElementById("dThresholdValue");
 // 初期設定
 let noVideoDebug = false;
 let brightnessHistory = [];
-let brightnessLevel = 50;
+let brightnessLevel = 10;
 let brightnessGain = 200;
 let morseText = "";
 let decodedText = "";
