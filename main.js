@@ -38,7 +38,7 @@ const dThresholdValue = document.getElementById("dThresholdValue");
 
 // 初期設定
 let brightnessHistory = [];
-let brightThreshold = 250;
+let brightThreshold = 200;
 let morseText = "";
 let decodedText = "";
 let gain = parseInt(gainSlider.value, 10);
