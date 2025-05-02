@@ -198,7 +198,7 @@ function drawTimeline() {
 
     ctxTimeline.fillStyle = "#0f0";
     const hLvl = brightnessLevel;
-    ctxTimeline.fillRect(x, height-hLvl, 1, 1);
+    ctxTimeline.fillRect(x, height-hLvl, 1, 2);
   }
 }
 
