@@ -369,6 +369,14 @@ async function preventSleep() {
   }
 }
 
+// TODO
+// *レスポンシブデザインで縦横対応
+// *設定周りを隠す
+// *設定値を自動で割り当てる
+// *音でやる
+//  参考：Web Audio API
+//        https://developer.mozilla.org/ja/docs/Web/API/Web_Audio_API
+
 initCamera();
 preventSleep();
 loop();
