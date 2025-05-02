@@ -2,7 +2,7 @@
 // モールス信号送受信アプリ - リファクタ済み・コメント付き
 
 // ▼ バージョン番号をここで管理
-const APP_VERSION = "0.1.0";
+const APP_VERSION = "0.1.1";
 
 // コンソールにバージョンを表示
 console.log(`モールス信号アプリ バージョン: ${APP_VERSION}`);
@@ -349,5 +349,26 @@ function loop() {
   requestAnimationFrame(loop);
 }
 
+// スクリーンセーバーの無効化
+// https://developer.mozilla.org/ja/docs/Web/API/Screen_Wake_Lock_API
+async function preventSleep() {
+  if ('wakeLock' in navigator) {
+    // isSupported
+    try {
+      const wakeLock = await navigator.wakeLock.request('screen');
+
+      // listen for our release event
+      wakeLock.onrelease = (event) => {
+        console.warn(event);
+      }
+    } catch (err) {
+      console.error(`${err.name}, ${err.message}`);
+    }
+  } else {
+    console.error('Wake lock is not supported by this browser.');
+  }
+}
+
 initCamera();
+preventSleep();
 loop();
