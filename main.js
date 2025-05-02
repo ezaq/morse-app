@@ -234,7 +234,7 @@ function processFrame() {
     const b = imageData.data[i + 2];
     const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
     brightnessSum += brightness;
-    bdata[parseInt(brightness)]++;
+    bdata[parseInt(brightness)] += 1;
   }
   const avgBrightness = brightnessSum / (imageData.data.length / 4);
   drawBrightnessHistogram(bdata)
