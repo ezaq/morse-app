@@ -45,7 +45,6 @@ let brightnessLevel = 50;
 let brightnessGain = 200;
 let morseText = "";
 let decodedText = "";
-let brightnessLevel = parseInt(brightnessLevelSlider.value, 10);
 let capturing = true;
 let videoTrack = null;
 
@@ -56,7 +55,12 @@ let lastChangeTime = Date.now();
 let lightDurations = [];
 let darkDurations = [];
 
-let dotDuration = parseInt(dThresholdSlider.value, 10);
+let dotDuration = 230;
+
+// UIに反映
+brightnessLevelSlider.value = brightnessLevel;
+brightnessGainSlider.value = brightnessGain;
+dThresholdSlider.value = dotDuration;
 
 // モールス信号辞書（送信用）
 const morseCodeMap = {
