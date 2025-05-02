@@ -177,8 +177,10 @@ function drawTimeline() {
   const length = brightnessHistory.length;
   ctxTimeline.clearRect(0, 0, width, height);
   for (let i = 0, x = width - length; i < length; i++, x++) {
-    ctxTimeline.fillStyle = brightnessHistory[i] ? '#fff' : '#000';
+    ctxTimeline.fillStyle = brightnessHistory[i].isLight ? '#fff' : '#000';
     ctxTimeline.fillRect(x, 0, 1, height);
+    ctxTimeline.fillStyle = '#ff0';
+    ctxTimeline.fillRect(x, height-brightnessHistory[i].val/10, 1, 1);
   }
 }
 
@@ -233,10 +235,13 @@ function processFrame() {
     const g = imageData.data[i + 1];
     const b = imageData.data[i + 2];
     const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
-    brightnessSum += brightness;
+    if(brightness >= 250){
+      brightnessSum += 1;
+    }
+    //brightnessSum += brightness;
     bdata[parseInt(brightness)] += 1;
   }
-  const avgBrightness = brightnessSum / (imageData.data.length / 4);
+  const avgBrightness = brightnessSum;// / (imageData.data.length / 4);
   drawBrightnessHistogram(bdata)
 
   // 明滅データ更新
@@ -244,7 +249,7 @@ function processFrame() {
   const isLight = avgBrightness > threshold;
 
   // タイムラインデータ更新
-  brightnessHistory.push(isLight);
+  brightnessHistory.push({isLight, val:brightnessSum});
   if (brightnessHistory.length > brightnessTimeline.width) {
     brightnessHistory.shift();
   }
