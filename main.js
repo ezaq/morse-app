@@ -59,8 +59,11 @@ let dotDuration = 230;
 
 // UIに反映
 brightnessLevelSlider.value = brightnessLevel;
+brightnessLevelValue.textContent = brightnessLevel;
 brightnessGainSlider.value = brightnessGain;
+brightnessGainValue.textContent = brightnessGain;
 dThresholdSlider.value = dotDuration;
+dThresholdValue.textContent = dotDuration
 
 // モールス信号辞書（送信用）
 const morseCodeMap = {

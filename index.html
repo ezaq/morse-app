@@ -28,21 +28,21 @@
   <!-- レベルスライダー制御パネル -->
   <canvas id="brightnessTimeline"></canvas>
   <div class="controls">
-    <label class="settingTitle">レベル: <span class="settingValue">50</span></label>
+    <label class="settingTitle">レベル: <span class="settingValue" id="brightnessLevelValue">--</span></label>
     <input type="range" id="brightnessLevelSlider" min="1" max="100">
   </div>
 
   <!-- 感度スライダー制御パネル -->
   <canvas id="brightnessHistogram"></canvas>
   <div class="controls">
-    <label class="settingTitle">感度: <span class="settingValue">50</span></label>
+    <label class="settingTitle">感度: <span class="settingValue" id="brightnessGainValue">--</span></label>
     <input type="range" id="brightnessGainSlider" min="0" max="255">
   </div>
 
   <!-- 間隔ヒストグラム -->
   <canvas id="histogramCanvas"></canvas>
   <div class="controls column">
-    <label class="label">長短間隔: <span id="dThresholdValue">230</span></label>
+    <label class="label">長短間隔: <span class="settingValue" id="dThresholdValue">--</span></label>
     <input type="range" id="dThresholdSlider" min="0" max="500">
   </div>
 
