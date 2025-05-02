@@ -225,7 +225,7 @@ function drawBrightnessHistogram(bdata) {
 
 // フレームごとの処理
 function processFrame() {
-  if ((!capturing || video.readyState !== video.HAVE_ENOUGH_DATA) && noVideoDebug) return;
+  if ((!capturing || video.readyState !== video.HAVE_ENOUGH_DATA) && !noVideoDebug) return;
 
   const width = noVideoDebug ? 600 : video.videoWidth;
   const height = noVideoDebug ? 480 : video.videoHeight;
