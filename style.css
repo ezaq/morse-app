@@ -70,6 +70,11 @@ button {
   height: 40px;
 }
 
+#brightnessHistogram{
+  width: 512px;
+  height: 256px;
+}
+
 #histogramCanvas{
   width: 600px;
   height: 200px;

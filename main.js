@@ -28,8 +28,10 @@ const output = document.getElementById("output");
 const thresholdSlider = document.getElementById("thresholdSlider");
 const thresholdValue = document.getElementById("thresholdValue");
 const brightnessTimeline = document.getElementById("brightnessTimeline");
+const brightnessHistogram = document.getElementById("brightnessHistogram");
 const histogramCanvas = document.getElementById("histogramCanvas");
 const ctxTimeline = brightnessTimeline.getContext("2d");
+const ctxBrightnessHistogram = brightnessHistogram.getContext("2d");
 const ctxHistogram = histogramCanvas.getContext("2d");
 const dThresholdSlider = document.getElementById("dThresholdSlider");
 const dThresholdValue = document.getElementById("dThresholdValue");
@@ -180,6 +182,27 @@ function drawTimeline() {
   }
 }
 
+// 明度ヒストグラム描画
+function drawBrightnessHistogram(bdata) {
+  const width = brightnessHistogram.width;
+  const height = brightnessHistogram.height;
+  const length = bdata.length;
+  const size = width / bdata.length;
+  ctxBrightnessHistogram.clearRect(0, 0, width, height);
+  // しきい値
+  ctxBrightnessHistogram.fillStyle = '#00ff00'; // 緑色
+  let index = threshold;
+  ctxBrightnessHistogram.fillRect(index * size, 0, size, height);
+
+  // 明度ヒストグラム
+  ctxBrightnessHistogram.fillStyle = '#ffaa00'; // オレンジ色
+  bdata.forEach((count, index) => {
+    if (count > 0) {
+      ctxBrightnessHistogram.fillRect(index * size, height-count*size, size, count*size);
+    }
+  });
+}
+
 // フレームごとの処理
 function processFrame() {
   if (!capturing || video.readyState !== video.HAVE_ENOUGH_DATA) return;
@@ -204,14 +227,17 @@ function processFrame() {
 
   // 明るさ計算
   let brightnessSum = 0;
+  const bdata = new Array(256).fill(0);
   for (let i = 0; i < imageData.data.length; i += 4) {
     const r = imageData.data[i];
     const g = imageData.data[i + 1];
     const b = imageData.data[i + 2];
     const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
     brightnessSum += brightness;
+    bdata[parseInt(brightness)]++;
   }
   const avgBrightness = brightnessSum / (imageData.data.length / 4);
+  drawBrightnessHistogram(bdata)
 
   // 明滅データ更新
   const now = Date.now();
