@@ -193,12 +193,12 @@ function drawTimeline() {
     ctxTimeline.fillRect(x, 0, 1, height);
 
     ctxTimeline.fillStyle = "rgb(255 128 0 / 50%)";
-    const h = Math.min(Math.max(0, brightnessHistory[i].val), height);
-    ctxTimeline.fillRect(x, height-h, 1, h);
+    const hVal = Math.min(Math.max(0, brightnessHistory[i].val), height);
+    ctxTimeline.fillRect(x, height-hVal, 1, hVal);
 
     ctxTimeline.fillStyle = "#0f0";
-    h = brightnessLevel;
-    ctxTimeline.fillRect(x, height-h, 1, 1);
+    const hLvl = brightnessLevel;
+    ctxTimeline.fillRect(x, height-hLvl, 1, 1);
   }
 }
 
