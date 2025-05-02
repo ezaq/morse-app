@@ -39,6 +39,7 @@ const dThresholdSlider = document.getElementById("dThresholdSlider");
 const dThresholdValue = document.getElementById("dThresholdValue");
 
 // 初期設定
+let noVideoDebug = false;
 let brightnessHistory = [];
 let brightnessLevel = 50;
 let brightnessGain = 200;
@@ -217,10 +218,10 @@ function drawBrightnessHistogram(bdata) {
 
 // フレームごとの処理
 function processFrame() {
-  if (!capturing || video.readyState !== video.HAVE_ENOUGH_DATA) return;
+  if ((!capturing || video.readyState !== video.HAVE_ENOUGH_DATA) && noVideoDebug) return;
 
-  const width = video.videoWidth;
-  const height = video.videoHeight;
+  const width = noVideoDebug ? 600 : video.videoWidth;
+  const height = noVideoDebug ? 480 : video.videoHeight;
   if (!width || !height) return;
 
   overlay.width = width;
@@ -254,6 +255,7 @@ function processFrame() {
 
   // 明滅データ更新
   const now = Date.now();
+  if (noVideoDebug) brightnessSum = now % 100;
   const isLight = brightnessSum >= brightnessLevel;
 
   // タイムラインデータ更新
