@@ -79,7 +79,7 @@ button {
   height: 256px;
 }
 
-#histogramCanvas{
+#durationHistogram{
   width: 100%;
   height: 200px;
 }

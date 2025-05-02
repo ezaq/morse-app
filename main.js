@@ -31,18 +31,18 @@ const brightnessGainSlider = document.getElementById("brightnessGainSlider");
 const brightnessGainlValue = document.getElementById("brightnessGainValue");
 const brightnessTimeline = document.getElementById("brightnessTimeline");
 const brightnessHistogram = document.getElementById("brightnessHistogram");
-const histogramCanvas = document.getElementById("histogramCanvas");
+const durationHistogram = document.getElementById("durationHistogram");
 const ctxTimeline = brightnessTimeline.getContext("2d");
 const ctxBrightnessHistogram = brightnessHistogram.getContext("2d");
-const ctxHistogram = histogramCanvas.getContext("2d");
-const dThresholdSlider = document.getElementById("dThresholdSlider");
-const dThresholdValue = document.getElementById("dThresholdValue");
+const ctxDurationHistogram = durationHistogram.getContext("2d");
+const durationSlider = document.getElementById("durationSlider");
+const durationValue = document.getElementById("durationValue");
 
 // 初期設定
 let noVideoDebug = false;
 let brightnessHistory = [];
 let brightnessLevel = 10;
-let brightnessGain = 200;
+let brightnessGain = 220;
 let morseText = "";
 let decodedText = "";
 let capturing = true;
@@ -62,8 +62,8 @@ brightnessLevelSlider.value = brightnessLevel;
 brightnessLevelValue.textContent = brightnessLevel;
 brightnessGainSlider.value = brightnessGain;
 brightnessGainValue.textContent = brightnessGain;
-dThresholdSlider.value = dotDuration;
-dThresholdValue.textContent = dotDuration
+durationSlider.value = dotDuration;
+durationValue.textContent = dotDuration
 
 // モールス信号辞書（送信用）
 const morseCodeMap = {
@@ -135,8 +135,8 @@ async function blinkMorse(text) {
 // ヒストグラム描画
 function drawHistogram() {
   const HIST_SIZE = 4;
-  const width = histogramCanvas.width;
-  const height = histogramCanvas.height;
+  const width = durationHistogram.width;
+  const height = durationHistogram.height;
   const arraySize = Math.ceil(width/HIST_SIZE);
 
   // 明るい時間のヒストグラム
@@ -158,26 +158,26 @@ function drawHistogram() {
   });
 
   // ヒストグラムの描画
-  ctxHistogram.clearRect(0, 0, histogramCanvas.width, histogramCanvas.height);
+  ctxDurationHistogram.clearRect(0, 0, durationHistogram.width, durationHistogram.height);
 
   // しきい値
-  ctxHistogram.fillStyle = '#00ff00'; // 緑色
+  ctxDurationHistogram.fillStyle = '#00ff00'; // 緑色
   let index = Math.floor(dotDuration / 10);
-  ctxHistogram.fillRect(index * HIST_SIZE, 0, HIST_SIZE, histogramCanvas.height);
+  ctxDurationHistogram.fillRect(index * HIST_SIZE, 0, HIST_SIZE, durationHistogram.height);
 
   // 明るい時間のヒストグラム
-  ctxHistogram.fillStyle = '#ff0000'; // 赤色
+  ctxDurationHistogram.fillStyle = '#ff0000'; // 赤色
   lightHistogram.forEach((count, index) => {
     if (count > 0) {
-      ctxHistogram.fillRect(index * HIST_SIZE, histogramCanvas.height/2 - count*HIST_SIZE, HIST_SIZE, count*HIST_SIZE);
+      ctxDurationHistogram.fillRect(index * HIST_SIZE, durationHistogram.height/2 - count*HIST_SIZE, HIST_SIZE, count*HIST_SIZE);
     }
   });
 
   // 暗い時間のヒストグラム
-  ctxHistogram.fillStyle = '#0000ff'; // 青色
+  ctxDurationHistogram.fillStyle = '#0000ff'; // 青色
   darkHistogram.forEach((count, index) => {
     if (count > 0) {
-      ctxHistogram.fillRect(index * HIST_SIZE, histogramCanvas.height/2, HIST_SIZE, count*HIST_SIZE);
+      ctxDurationHistogram.fillRect(index * HIST_SIZE, durationHistogram.height/2, HIST_SIZE, count*HIST_SIZE);
     }
   });
 }
@@ -322,9 +322,9 @@ brightnessGainSlider.addEventListener("input", () => {
 });
 
 // 間隔スライダー
-dThresholdSlider.addEventListener("input", () => {
-  dotDuration = parseInt(dThresholdSlider.value, 10);
-  dThresholdValue.textContent = dotDuration
+durationSlider.addEventListener("input", () => {
+  dotDuration = parseInt(durationSlider.value, 10);
+  durationValue.textContent = dotDuration
 });
 
 
