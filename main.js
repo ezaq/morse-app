@@ -306,6 +306,7 @@ function processFrame() {
   drawHistogram();
 
   output.value = `${decodedText.trim()}`;
+  output.scrollTop = output.scrollHeight;
 }
 
 // イベントリスナー
