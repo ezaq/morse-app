@@ -12,16 +12,16 @@
     <canvas class="overlay" id="overlay"></canvas>
   </div>
 
-  <!-- 入力と送信・クリアボタン -->
+  <!-- 入力と送信ボタン -->
   <div class="controls">
     <input type="text" id="input" placeholder="英数字のみ入力" pattern="[A-Za-z0-9]+" value="Hello world">
     <button id="sendBtn">送信</button>
   </div>
 
-  <!-- 受信出力表示領域 -->
+  <!-- 受信出力とクリアボタン -->
   <div class="controls">
     <label class="settingTitle">受信結果:</label>
-    <textarea id="output"></textarea>
+    <textarea id="output" readonly></textarea>
     <button id="clearBtn">クリア</button>
   </div>
 
