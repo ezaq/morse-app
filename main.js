@@ -2,7 +2,7 @@
 // モールス信号送受信アプリ - リファクタ済み・コメント付き
 
 // ▼ バージョン番号をここで管理
-const APP_VERSION = "0.1.1";
+const APP_VERSION = "0.1.2";
 
 // コンソールにバージョンを表示
 console.log(`モールス信号アプリ バージョン: ${APP_VERSION}`);
@@ -22,7 +22,8 @@ const video = document.getElementById("video");
 const overlay = document.getElementById("overlay");
 const ctxOverlay = overlay.getContext("2d");
 const input = document.getElementById("input");
-const sendBtn = document.getElementById("sendBtn");
+const sendLightBtn = document.getElementById("sendLightBtn");
+const sendSpeakerBtn = document.getElementById("sendSpeakerBtn");
 const clearBtn = document.getElementById("clearBtn");
 const output = document.getElementById("output");
 const brightnessLevelSlider = document.getElementById("brightnessLevelSlider");
@@ -337,7 +338,13 @@ clearBtn.addEventListener("click", () => {
   darkDurations = [];
 });
 
-sendBtn.addEventListener("click", () => {
+sendLightBtn.addEventListener("click", () => {
+  const text = input.value.toUpperCase().replace(/\s+/g, " ").replace(/[^A-Z0-9 ]/g, "");
+  console.log("送信:", text);
+  blinkMorse(text);
+});
+
+sendSpeakerBtn.addEventListener("click", () => {
   const text = input.value.toUpperCase().replace(/\s+/g, " ").replace(/[^A-Z0-9 ]/g, "");
   console.log("送信:", text);
   blinkMorse(text);
