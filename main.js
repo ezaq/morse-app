@@ -2,7 +2,7 @@
 // モールス信号送受信アプリ - リファクタ済み・コメント付き
 
 // ▼ バージョン番号をここで管理
-const APP_VERSION = "0.1.2";
+const APP_VERSION = "0.1.3";
 
 // コンソールにバージョンを表示
 console.log(`モールス信号アプリ バージョン: ${APP_VERSION}`);
@@ -49,7 +49,6 @@ let decodedText = "";
 let capturing = true;
 let videoTrack = null;
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-let oscillator = null;
 
 let signalHistory = [];
 let lastSignal = null;
@@ -143,23 +142,44 @@ async function controlLight(on) {
 }
 
 // スピーカー制御
-async function controlSpeaker(on) {
-  if (on) {
-    if (!oscillator) {
-      oscillator = audioCtx.createOscillator();
-      oscillator.type = 'sine'; // または 'square' の方がモールスらしい
-      oscillator.frequency.setValueAtTime(440, audioCtx.currentTime);
-      oscillator.connect(audioCtx.destination);
-      oscillator.start();
+const controlSpeaker = (() => {
+  let oscillator = null;
+  let gainNode = null;
+
+  return async (on) => {
+    const now = audioCtx.currentTime;
+    const fadeTime = 0.01; // 10ms のフェード
+
+    if (on) {
+      if (!oscillator) {
+        oscillator = audioCtx.createOscillator();
+        gainNode = audioCtx.createGain();
+        gainNode.gain.setValueAtTime(0, now); // 最初は音量ゼロ
+        oscillator.type = 'square';
+        oscillator.frequency.setValueAtTime(880, now);
+        oscillator.connect(gainNode).connect(audioCtx.destination);
+        oscillator.start();
+
+        // フェードイン
+        gainNode.gain.linearRampToValueAtTime(1.0, now + fadeTime);
+      }
+    } else {
+      if (oscillator && gainNode) {
+        // フェードアウト → 停止
+        gainNode.gain.cancelScheduledValues(now);
+        gainNode.gain.setValueAtTime(gainNode.gain.value, now);
+        gainNode.gain.linearRampToValueAtTime(0, now + fadeTime);
+
+        // stop() は少し遅らせて実行
+        oscillator.stop(now + fadeTime + 0.01);
+        oscillator.disconnect();
+        gainNode.disconnect();
+        oscillator = null;
+        gainNode = null;
+      }
     }
-  } else {
-    if (oscillator) {
-      oscillator.stop();
-      oscillator.disconnect();
-      oscillator = null;
-    }
-  }
-}
+  };
+})();
 
 // ヒストグラム描画
 function drawHistogram() {
