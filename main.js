@@ -136,9 +136,9 @@ async function sendMorse(text, control, cpm=10) {
 }
 
 // ライト制御
-async function controlLight(on) {
+const controlLight = async (on) => {
   videoTrack.applyConstraints({ advanced: [{ torch: on }] });
-}
+};
 
 // スピーカー制御
 const controlSpeaker = (() => {
