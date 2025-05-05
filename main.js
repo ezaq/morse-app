@@ -48,6 +48,8 @@ let morseText = "";
 let decodedText = "";
 let capturing = true;
 let videoTrack = null;
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let oscillator = null;
 
 let signalHistory = [];
 let lastSignal = null;
@@ -110,9 +112,11 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// モールス信号をLEDで点滅表示
-async function blinkMorse(text) {
-  text = text.toUpperCase();
+// モールス信号を送信
+async function sendMorse(text, control) {
+  text = text.toUpperCase().replace(/\s+/g, " ").replace(/[^A-Z0-9 ]/g, "");
+  console.log("送信:", text);
+
   for (let i = 0; i < text.length; i++) {
     const char = text[i];
     if (char === ' ') {
@@ -124,12 +128,36 @@ async function blinkMorse(text) {
 
     for (let j = 0; j < code.length; j++) {
       const signal = code[j];
-      await videoTrack.applyConstraints({ advanced: [{ torch: true }] });
+      await control(true);
       await sleep(signal === '.' ? DOT : DASH);
-      await videoTrack.applyConstraints({ advanced: [{ torch: false }] });
+      await control(false);
       if (j < code.length - 1) await sleep(SPACE);
     }
     await sleep(LETTER_SPACE);
+  }
+}
+
+// ライト制御
+async function controlLight(on) {
+  videoTrack.applyConstraints({ advanced: [{ torch: on }] });
+}
+
+// スピーカー制御
+async function controlSpeaker(on) {
+  if (on) {
+    if (!oscillator) {
+      oscillator = audioCtx.createOscillator();
+      oscillator.type = 'sine'; // または 'square' の方がモールスらしい
+      oscillator.frequency.setValueAtTime(440, audioCtx.currentTime);
+      oscillator.connect(audioCtx.destination);
+      oscillator.start();
+    }
+  } else {
+    if (oscillator) {
+      oscillator.stop();
+      oscillator.disconnect();
+      oscillator = null;
+    }
   }
 }
 
@@ -339,15 +367,11 @@ clearBtn.addEventListener("click", () => {
 });
 
 sendLightBtn.addEventListener("click", () => {
-  const text = input.value.toUpperCase().replace(/\s+/g, " ").replace(/[^A-Z0-9 ]/g, "");
-  console.log("送信:", text);
-  blinkMorse(text);
+  sendMorse(input.value, controlLight);
 });
 
 sendSpeakerBtn.addEventListener("click", () => {
-  const text = input.value.toUpperCase().replace(/\s+/g, " ").replace(/[^A-Z0-9 ]/g, "");
-  console.log("送信:", text);
-  blinkMorse(text);
+  sendMorse(input.value, controlSpeaker);
 });
 
 // フレーム更新ループ
