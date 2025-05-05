@@ -104,8 +104,8 @@ function sleep(ms) {
 }
 
 // モールス信号を送信
-async function sendMorse(text, control, cpm=10) {
-  const UNIT = 60000 / cpm / 50;
+async function sendMorse(text, control, wpm=10) {
+  const UNIT = 60000 / wpm / 50;
   const DOT = UNIT;
   const DASH = UNIT * 3;
   const SPACE = UNIT;
