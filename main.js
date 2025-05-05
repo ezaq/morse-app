@@ -390,7 +390,7 @@ sendLightBtn.addEventListener("click", () => {
 });
 
 sendSpeakerBtn.addEventListener("click", () => {
-  sendMorse(input.value, controlSpeaker, 60);
+  sendMorse(input.value, controlSpeaker, 20);
 });
 
 // フレーム更新ループ
