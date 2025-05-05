@@ -2,7 +2,7 @@
 // モールス信号送受信アプリ - リファクタ済み・コメント付き
 
 // ▼ バージョン番号をここで管理
-const APP_VERSION = "0.1.3";
+const APP_VERSION = "0.1.4";
 
 // コンソールにバージョンを表示
 console.log(`モールス信号アプリ バージョン: ${APP_VERSION}`);
@@ -84,14 +84,6 @@ const morseCodeMap = {
 // モールス信号逆引き辞書（受信用）
 const codeMorseMap = Object.fromEntries(Object.entries(morseCodeMap).map(([k, v]) => [v, k]));
 
-const CPM = 10;
-const UNIT = 60000 / CPM / 50;
-const DOT = UNIT;
-const DASH = UNIT * 3;
-const SPACE = UNIT;
-const LETTER_SPACE = UNIT * 3;
-const WORD_SPACE = UNIT * 7;
-
 // カメラの起動
 async function initCamera() {
   try {
@@ -112,7 +104,14 @@ function sleep(ms) {
 }
 
 // モールス信号を送信
-async function sendMorse(text, control) {
+async function sendMorse(text, control, cpm=10) {
+  const UNIT = 60000 / cpm / 50;
+  const DOT = UNIT;
+  const DASH = UNIT * 3;
+  const SPACE = UNIT;
+  const LETTER_SPACE = UNIT * 3;
+  const WORD_SPACE = UNIT * 7;
+
   text = text.toUpperCase().replace(/\s+/g, " ").replace(/[^A-Z0-9 ]/g, "");
   console.log("送信:", text);
 
@@ -391,7 +390,7 @@ sendLightBtn.addEventListener("click", () => {
 });
 
 sendSpeakerBtn.addEventListener("click", () => {
-  sendMorse(input.value, controlSpeaker);
+  sendMorse(input.value, controlSpeaker, 60);
 });
 
 // フレーム更新ループ
