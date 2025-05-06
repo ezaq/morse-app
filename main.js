@@ -2,7 +2,7 @@
 // モールス信号送受信アプリ - リファクタ済み・コメント付き
 
 // ▼ バージョン番号をここで管理
-const APP_VERSION = "0.1.5";
+const APP_VERSION = "0.1.6";
 
 // コンソールにバージョンを表示
 console.log(`モールス信号アプリ バージョン: ${APP_VERSION}`);
@@ -182,7 +182,7 @@ const controlSpeaker = (() => {
         oscillator.start();
 
         // フェードイン
-        gainNode.gain.linearRampToValueAtTime(1.0, now + fadeTime);
+        gainNode.gain.linearRampToValueAtTime(0.3, now + fadeTime);
       }
     } else {
       if (oscillator && gainNode) {
