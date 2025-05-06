@@ -24,6 +24,7 @@ const ctxOverlay = overlay.getContext("2d", {willReadFrequently: true});
 const input = document.getElementById("input");
 const sendLightBtn = document.getElementById("sendLightBtn");
 const sendSpeakerBtn = document.getElementById("sendSpeakerBtn");
+const sendStopBtn = document.getElementById("sendStopBtn");
 const clearBtn = document.getElementById("clearBtn");
 const output = document.getElementById("output");
 const brightnessLevelSlider = document.getElementById("brightnessLevelSlider");
@@ -130,6 +131,9 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+// モールス信号停止フラグ
+let isStopMorse = false;
+
 // モールス信号を送信
 async function sendMorse(text, control, wpm=10) {
   const UNIT = 60000 / wpm / 50;
@@ -142,7 +146,8 @@ async function sendMorse(text, control, wpm=10) {
   text = text.toUpperCase().replace(/\s+/g, " ").replace(/[^A-Z0-9 ]/g, "");
   console.log("送信:", text);
 
-  for (let i = 0; i < text.length; i++) {
+  isStopMorse = false;
+  for (let i = 0; (i < text.length) && !isStopMorse; i++) {
     const char = text[i];
     if (char === ' ') {
       await sleep(WORD_SPACE);
@@ -151,15 +156,21 @@ async function sendMorse(text, control, wpm=10) {
     const code = morseCodeMap[char];
     if (!code) continue;
 
-    for (let j = 0; j < code.length; j++) {
+    for (let j = 0; (j < code.length) && !isStopMorse; j++) {
       const signal = code[j];
       await control(true);
       await sleep(signal === '.' ? DOT : DASH);
       await control(false);
       if (j < code.length - 1) await sleep(SPACE);
     }
-    await sleep(LETTER_SPACE);
+    if (!isStopMorse) await sleep(LETTER_SPACE);
   }
+}
+
+// モールス信号を停止
+function stopMorse() {
+  isStopMorse = true;
+  console.log("送信停止");
 }
 
 // ライト制御
@@ -456,6 +467,10 @@ sendLightBtn.addEventListener("click", () => {
 
 sendSpeakerBtn.addEventListener("click", () => {
   sendMorse(input.value, controlSpeaker, 20);
+});
+
+sendStopBtn.addEventListener("click", () => {
+  stopMorse();
 });
 
 // フレーム更新ループ
