@@ -25,8 +25,8 @@ const input = document.getElementById("input");
 const sendLightBtn = document.getElementById("sendLightBtn");
 const sendSpeakerBtn = document.getElementById("sendSpeakerBtn");
 const sendStopBtn = document.getElementById("sendStopBtn");
-const sendTimeline = document.getElementById("sendTimeline");
-const ctxSendTimeline = sendTimeline.getContext("2d");
+const sendMorseTimeline = document.getElementById("sendMorseTimeline");
+const ctxSendMorseTimeline = sendMorseTimeline.getContext("2d");
 const clearBtn = document.getElementById("clearBtn");
 const output = document.getElementById("output");
 const brightnessLevelSlider = document.getElementById("brightnessLevelSlider");
@@ -289,16 +289,19 @@ function drawTimeline(canvas, context, history, level) {
   const length = history.length;
   context.clearRect(0, 0, width, height);
   for (let i = 0, x = width - length; i < length; i++, x++) {
-    context.fillStyle = history[i].isLight ? '#fff' : '#000';
+    context.fillStyle = history[i].state ? '#fff' : '#000';
     context.fillRect(x, 0, 1, height);
 
-    context.fillStyle = "rgb(255 128 0 / 50%)";
-    const hVal = Math.min(Math.max(0, history[i].val), height);
-    context.fillRect(x, height-hVal, 1, hVal);
+    if (history[i].val) {
+      context.fillStyle = "rgb(255 128 0 / 50%)";
+      const hVal = Math.min(Math.max(0, history[i].val), height);
+      context.fillRect(x, height-hVal, 1, hVal);
+    }
 
-    context.fillStyle = "#0f0";
-    const hLvl = level;
-    context.fillRect(x, height-hLvl, 1, 2);
+    if (level) {
+      context.fillStyle = "#0f0";
+      context.fillRect(x, height-level, 1, 2);
+    }
   }
 }
 
@@ -395,14 +398,14 @@ function processFrame() {
   const isLight = brightnessSum >= brightnessLevel;
 
   // 送信タイムラインデータ更新
-  sendMorseHistory.push({stateSendMorse, val:0});
+  sendMorseHistory.push({state: stateSendMorse});
   if (sendMorseHistory.length > sendMorseTimeline.width) {
     sendMorseHistory.shift();
   }
   drawTimeline(sendMorseTimeline, ctxSendMorseTimeline, sendMorseHistory);
 
   // タイムラインデータ更新
-  brightnessHistory.push({isLight, val:brightnessSum});
+  brightnessHistory.push({state: isLight, val:brightnessSum});
   if (brightnessHistory.length > brightnessTimeline.width) {
     brightnessHistory.shift();
   }
