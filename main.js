@@ -514,7 +514,7 @@ async function preventSleep() {
 //  参考：Web Audio API
 //        https://developer.mozilla.org/ja/docs/Web/API/Web_Audio_API
 
-Video = await initVideo(video);
-Audio = await initAudio();
+initVideo(video).then((result) => {Video = result;});
+initAudio().then((result) => {Audio = result;});
 preventSleep();
 loop();
