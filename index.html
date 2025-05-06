@@ -17,7 +17,8 @@
     <input type="text" id="input" placeholder="英数字のみ入力" pattern="[A-Za-z0-9]+" value="Hello world">
     <button id="sendLightBtn">💡</button>
     <button id="sendSpeakerBtn">🔊</button>
-    <button id="sendStopBtn">⏹</button>
+    <button id="sendStopBtn">⏹️</button>
+    <canvas id="sendTimeline" class="timeline"></canvas>
   </div>
 
   <!-- 受信出力とクリアボタン -->
@@ -28,7 +29,7 @@
   </div>
 
   <!-- レベルスライダー制御パネル -->
-  <canvas id="brightnessTimeline"></canvas>
+  <canvas id="brightnessTimeline" class="timeline"></canvas>
   <div class="controls">
     <label class="settingTitle">レベル: <span class="settingValue" id="brightnessLevelValue">--</span></label>
     <input type="range" id="brightnessLevelSlider" min="1" max="50">

@@ -25,6 +25,8 @@ const input = document.getElementById("input");
 const sendLightBtn = document.getElementById("sendLightBtn");
 const sendSpeakerBtn = document.getElementById("sendSpeakerBtn");
 const sendStopBtn = document.getElementById("sendStopBtn");
+const sendTimeline = document.getElementById("sendTimeline");
+const ctxSendTimeline = sendTimeline.getContext("2d");
 const clearBtn = document.getElementById("clearBtn");
 const output = document.getElementById("output");
 const brightnessLevelSlider = document.getElementById("brightnessLevelSlider");
@@ -48,6 +50,7 @@ let Audio = null;
 
 // 初期設定
 let noVideoDebug = false;
+let sendMorseHistory = [];
 let brightnessHistory = [];
 let brightnessLevel = 10;
 let brightnessGain = 220;
@@ -141,6 +144,8 @@ function sleep(ms) {
 // モールス信号停止フラグ
 let isStopMorse = false;
 
+let stateSendMorse = false;
+
 // モールス信号を送信
 async function sendMorse(text, control, wpm=10) {
   const UNIT = 60000 / wpm / 50;
@@ -165,8 +170,10 @@ async function sendMorse(text, control, wpm=10) {
 
     for (let j = 0; (j < code.length) && !isStopMorse; j++) {
       const signal = code[j];
+      stateSendMorse = true;
       await control(true);
       await sleep(signal === '.' ? DOT : DASH);
+      stateSendMorse = false;
       await control(false);
       if (j < code.length - 1) await sleep(SPACE);
     }
@@ -276,22 +283,22 @@ function drawHistogram() {
 }
 
 // タイムライン描画
-function drawTimeline() {
-  const width = brightnessTimeline.width;
-  const height = brightnessTimeline.height;
-  const length = brightnessHistory.length;
-  ctxTimeline.clearRect(0, 0, width, height);
+function drawTimeline(canvas, context, history, level) {
+  const width = canvas.width;
+  const height = canvas.height;
+  const length = history.length;
+  context.clearRect(0, 0, width, height);
   for (let i = 0, x = width - length; i < length; i++, x++) {
-    ctxTimeline.fillStyle = brightnessHistory[i].isLight ? '#fff' : '#000';
-    ctxTimeline.fillRect(x, 0, 1, height);
+    context.fillStyle = history[i].isLight ? '#fff' : '#000';
+    context.fillRect(x, 0, 1, height);
 
-    ctxTimeline.fillStyle = "rgb(255 128 0 / 50%)";
-    const hVal = Math.min(Math.max(0, brightnessHistory[i].val), height);
-    ctxTimeline.fillRect(x, height-hVal, 1, hVal);
+    context.fillStyle = "rgb(255 128 0 / 50%)";
+    const hVal = Math.min(Math.max(0, history[i].val), height);
+    context.fillRect(x, height-hVal, 1, hVal);
 
-    ctxTimeline.fillStyle = "#0f0";
-    const hLvl = brightnessLevel;
-    ctxTimeline.fillRect(x, height-hLvl, 1, 2);
+    context.fillStyle = "#0f0";
+    const hLvl = level;
+    context.fillRect(x, height-hLvl, 1, 2);
   }
 }
 
@@ -387,12 +394,19 @@ function processFrame() {
   if (noVideoDebug) brightnessSum = now % 100;
   const isLight = brightnessSum >= brightnessLevel;
 
+  // 送信タイムラインデータ更新
+  sendMorseHistory.push({stateSendMorse, val:0});
+  if (sendMorseHistory.length > sendMorseTimeline.width) {
+    sendMorseHistory.shift();
+  }
+  drawTimeline(sendMorseTimeline, ctxSendMorseTimeline, sendMorseHistory);
+
   // タイムラインデータ更新
   brightnessHistory.push({isLight, val:brightnessSum});
   if (brightnessHistory.length > brightnessTimeline.width) {
     brightnessHistory.shift();
   }
-  drawTimeline();
+  drawTimeline(brightnessTimeline, ctxTimeline, brightnessHistory, brightnessLevel);
 
   // 周波数スペクトル更新
   drawFrequencySpectrum();
