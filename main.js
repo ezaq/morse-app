@@ -2,7 +2,7 @@
 // モールス信号送受信アプリ - リファクタ済み・コメント付き
 
 // ▼ バージョン番号をここで管理
-const APP_VERSION = "0.1.4";
+const APP_VERSION = "0.1.5";
 
 // コンソールにバージョンを表示
 console.log(`モールス信号アプリ バージョン: ${APP_VERSION}`);
@@ -112,7 +112,7 @@ async function initAudio() {
 
     // AnalyserNodeを作成
     audioAnalyser = audioContext.createAnalyser();
-    audioAnalyser.fftSize = 2048; // FFTのサイズ（周波数分解能に影響）
+    audioAnalyser.fftSize = 512; // FFTのサイズ（周波数分解能に影響）
 
     source.connect(audioAnalyser);
   } catch (error) {
@@ -288,7 +288,7 @@ function drawBrightnessHistogram(bdata) {
   ctxBrightnessHistogram.fillStyle = '#ffaa00'; // オレンジ色
   bdata.forEach((count, index) => {
     if (count > 0) {
-      ctxBrightnessHistogram.fillRect(index * size, height-count*size, size, count*size);
+      ctxBrightnessHistogram.fillRect(index*size, height-count*size, size, count*size);
     }
   });
 }
@@ -297,26 +297,22 @@ function drawBrightnessHistogram(bdata) {
 async function drawFrequencySpectrum() {
   if (!audioAnalyser) return;
 
-  const canvas = frequencySpectrum;
-  const ctx = ctxFrequencySpectrum;
-  const bufferLength = audioAnalyser.frequencyBinCount;
-  const dataArray = new Uint8Array(bufferLength);
+  const width = frequencySpectrum.width;
+  const height = frequencySpectrum.height;
+  const length = audioAnalyser.frequencyBinCount;
+  const size = width / length;
 
+  const dataArray = new Uint8Array(length);
   audioAnalyser.getByteFrequencyData(dataArray);
 
-  ctx.fillStyle = 'black';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  const barWidth = canvas.width / bufferLength;
-
-  for (let i = 0; i < bufferLength; i++) {
-    const value = dataArray[i];
-    const barHeight = value;
-    const x = i * barWidth;
-
-    ctx.fillStyle = `rgb(${value + 100}, 255, ${255 - value})`;
-    ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-  }
+  // 明度ヒストグラム
+  ctxFrequencySpectrum.clearRect(0, 0, width, height);
+  dataArray.forEach((value, index) => {
+    if (value > 0) {
+      ctxFrequencySpectrum.fillStyle = `rgb(${value + 100}, 255, ${255 - value})`;
+      ctxFrequencySpectrum.fillRect(index*size, height-value, size, value);
+    }
+  });
 }
 
 // フレームごとの処理
