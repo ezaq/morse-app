@@ -42,6 +42,10 @@ const ctxDurationHistogram = durationHistogram.getContext("2d");
 const durationSlider = document.getElementById("durationSlider");
 const durationValue = document.getElementById("durationValue");
 
+// メディアコントローラー
+let Video = null;
+let Audio = null;
+
 // 初期設定
 let noVideoDebug = false;
 let brightnessHistory = [];
@@ -50,10 +54,7 @@ let brightnessGain = 220;
 let morseText = "";
 let decodedText = "";
 let capturing = true;
-let videoTrack = null;
 
-let audioContext = null;
-let audioAnalyser = null;
 let audioVolume = 0.3
 let audioTone = 880;
 let audioRxFrequency = 880;
@@ -95,35 +96,41 @@ const morseCodeMap = {
 const codeMorseMap = Object.fromEntries(Object.entries(morseCodeMap).map(([k, v]) => [v, k]));
 
 // カメラの起動
-async function initCamera() {
+function initVideo(videoElement) {
+  let video = null;
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-    video.srcObject = stream;
-    videoTrack = stream.getVideoTracks()[0];
-    video.onloadedmetadata = () => {
-      video.play();
+    videoElement.srcObject = stream;
+    const track = stream.getVideoTracks()[0];
+    videoElement.onloadedmetadata = () => {
+      videoElement.play();
     };
+    video = {track};
   } catch (error) {
     console.error("カメラの起動に失敗:", error);
   }
+  return video;
 }
 
 // オーディオの起動
-async function initAudio() {
+function initAudio() {
+  let audio = null;
   try {
     // マイクにアクセス
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const source = audioContext.createMediaStreamSource(stream);
+    const context = new (window.AudioContext || window.webkitAudioContext)();
+    const source = context.createMediaStreamSource(stream);
 
     // AnalyserNodeを作成
-    audioAnalyser = audioContext.createAnalyser();
-    audioAnalyser.fftSize = 1024; // FFTのサイズ（周波数分解能に影響）
+    const analyser = context.createAnalyser();
+    analyser.fftSize = 1024; // FFTのサイズ（周波数分解能に影響）
 
-    source.connect(audioAnalyser);
+    source.connect(analyser);
+    audio = {context, analyser};
   } catch (error) {
     console.error("オーディオの起動に失敗:", error);
   }
+  return audio;
 }
 
 // sleep
@@ -175,7 +182,7 @@ function stopMorse() {
 
 // ライト制御
 const controlLight = async (on) => {
-  videoTrack.applyConstraints({ advanced: [{ torch: on }] });
+  Video.track.applyConstraints({ advanced: [{ torch: on }] });
 };
 
 // スピーカー制御
@@ -184,17 +191,17 @@ const controlSpeaker = (() => {
   let gainNode = null;
 
   return async (on) => {
-    const now = audioContext.currentTime;
+    const now = Audio.context.currentTime;
     const fadeTime = 0.01; // 10ms のフェード
 
     if (on) {
       if (!oscillator) {
-        oscillator = audioContext.createOscillator();
-        gainNode = audioContext.createGain();
+        oscillator = Audio.context.createOscillator();
+        gainNode = Audio.context.createGain();
         gainNode.gain.setValueAtTime(0, now); // 最初は音量ゼロ
         oscillator.type = 'square';
         oscillator.frequency.setValueAtTime(audioTone, now);
-        oscillator.connect(gainNode).connect(audioContext.destination);
+        oscillator.connect(gainNode).connect(Audio.context.destination);
         oscillator.start();
 
         // フェードイン
@@ -311,22 +318,22 @@ function drawBrightnessHistogram(bdata) {
 
 // 周波数スペクトル描画
 async function drawFrequencySpectrum() {
-  if (!audioAnalyser) return;
+  if (!Audio.analyser) return;
 
   const width = frequencySpectrum.width;
   const height = frequencySpectrum.height;
-  const length = audioAnalyser.frequencyBinCount;
+  const length = Audio.analyser.frequencyBinCount;
   const size = width / length;
 
   const dataArray = new Uint8Array(length);
-  audioAnalyser.getByteFrequencyData(dataArray);
+  Audio.analyser.getByteFrequencyData(dataArray);
 
   ctxFrequencySpectrum.clearRect(0, 0, width, height);
 
   // 受信周波数
   ctxFrequencySpectrum.fillStyle = '#00ff00'; // 緑色
-  // hz = index * audioContext.sampleRate / 2 / length;
-  let index = Math.round(audioRxFrequency / (audioContext.sampleRate / 2 / length));
+  // hz = index * Audio.context.sampleRate / 2 / length;
+  let index = Math.round(audioRxFrequency / (Audio.context.sampleRate / 2 / length));
   ctxFrequencySpectrum.fillRect(index * size, 0, size, height);
 
   // 周波数スペクトル
@@ -507,7 +514,7 @@ async function preventSleep() {
 //  参考：Web Audio API
 //        https://developer.mozilla.org/ja/docs/Web/API/Web_Audio_API
 
-initCamera();
-initAudio();
+Video = initVideo(video);
+Audio = initAudio();
 preventSleep();
 loop();
