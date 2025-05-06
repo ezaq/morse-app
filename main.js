@@ -53,6 +53,8 @@ let videoTrack = null;
 
 let audioContext = null;
 let audioAnalyser = null;
+let audioVolume = 0.3
+let audioTone = 880;
 
 let signalHistory = [];
 let lastSignal = null;
@@ -177,12 +179,12 @@ const controlSpeaker = (() => {
         gainNode = audioContext.createGain();
         gainNode.gain.setValueAtTime(0, now); // 最初は音量ゼロ
         oscillator.type = 'square';
-        oscillator.frequency.setValueAtTime(880, now);
+        oscillator.frequency.setValueAtTime(audioTone, now);
         oscillator.connect(gainNode).connect(audioContext.destination);
         oscillator.start();
 
         // フェードイン
-        gainNode.gain.linearRampToValueAtTime(0.3, now + fadeTime);
+        gainNode.gain.linearRampToValueAtTime(audioVolume, now + fadeTime);
       }
     } else {
       if (oscillator && gainNode) {
@@ -305,10 +307,17 @@ async function drawFrequencySpectrum() {
   const dataArray = new Uint8Array(length);
   audioAnalyser.getByteFrequencyData(dataArray);
 
-  // 明度ヒストグラム
   ctxFrequencySpectrum.clearRect(0, 0, width, height);
+
+  // しきい値
+  ctxFrequencySpectrum.fillStyle = '#00ff00'; // 緑色
+  let index = Math.round(audioTone / (audioContext.sampleRate / 2 / length));
+  ctxFrequencySpectrum.fillRect(index * size, 0, size, height);
+
+  // 明度ヒストグラム
   dataArray.forEach((value, index) => {
     if (value > 0) {
+//      const hz = index * audioContext.sampleRate / 2 / length;
       ctxFrequencySpectrum.fillStyle = `rgb(${value + 100}, 255, ${255 - value})`;
       ctxFrequencySpectrum.fillRect(index*size, height-value, size, value);
     }
