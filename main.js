@@ -96,7 +96,7 @@ const morseCodeMap = {
 const codeMorseMap = Object.fromEntries(Object.entries(morseCodeMap).map(([k, v]) => [v, k]));
 
 // カメラの起動
-function initVideo(videoElement) {
+async function initVideo(videoElement) {
   let video = null;
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
@@ -113,7 +113,7 @@ function initVideo(videoElement) {
 }
 
 // オーディオの起動
-function initAudio() {
+async function initAudio() {
   let audio = null;
   try {
     // マイクにアクセス
@@ -514,7 +514,7 @@ async function preventSleep() {
 //  参考：Web Audio API
 //        https://developer.mozilla.org/ja/docs/Web/API/Web_Audio_API
 
-Video = initVideo(video);
-Audio = initAudio();
+Video = await initVideo(video);
+Audio = await initAudio();
 preventSleep();
 loop();
