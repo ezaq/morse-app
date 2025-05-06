@@ -2,7 +2,7 @@
 // モールス信号送受信アプリ - リファクタ済み・コメント付き
 
 // ▼ バージョン番号をここで管理
-const APP_VERSION = "0.1.6";
+const APP_VERSION = "0.1.7";
 
 // コンソールにバージョンを表示
 console.log(`モールス信号アプリ バージョン: ${APP_VERSION}`);
@@ -55,6 +55,7 @@ let audioContext = null;
 let audioAnalyser = null;
 let audioVolume = 0.3
 let audioTone = 880;
+let audioRxFrequency = 880;
 
 let signalHistory = [];
 let lastSignal = null;
@@ -70,8 +71,10 @@ brightnessLevelSlider.value = brightnessLevel;
 brightnessLevelValue.textContent = brightnessLevel;
 brightnessGainSlider.value = brightnessGain;
 brightnessGainValue.textContent = brightnessGain;
+frequencySlider.value = audioRxFrequency;
+frequencyValue.textContent = audioRxFrequency;
 durationSlider.value = dotDuration;
-durationValue.textContent = dotDuration
+durationValue.textContent = dotDuration;
 
 // モールス信号辞書（送信用）
 const morseCodeMap = {
@@ -114,7 +117,7 @@ async function initAudio() {
 
     // AnalyserNodeを作成
     audioAnalyser = audioContext.createAnalyser();
-    audioAnalyser.fftSize = 512; // FFTのサイズ（周波数分解能に影響）
+    audioAnalyser.fftSize = 1024; // FFTのサイズ（周波数分解能に影響）
 
     source.connect(audioAnalyser);
   } catch (error) {
@@ -309,15 +312,15 @@ async function drawFrequencySpectrum() {
 
   ctxFrequencySpectrum.clearRect(0, 0, width, height);
 
-  // しきい値
+  // 受信周波数
   ctxFrequencySpectrum.fillStyle = '#00ff00'; // 緑色
-  let index = Math.round(audioTone / (audioContext.sampleRate / 2 / length));
+  // hz = index * audioContext.sampleRate / 2 / length;
+  let index = Math.round(audioRxFrequency / (audioContext.sampleRate / 2 / length));
   ctxFrequencySpectrum.fillRect(index * size, 0, size, height);
 
-  // 明度ヒストグラム
+  // 周波数スペクトル
   dataArray.forEach((value, index) => {
     if (value > 0) {
-//      const hz = index * audioContext.sampleRate / 2 / length;
       ctxFrequencySpectrum.fillStyle = `rgb(${value + 100}, 255, ${255 - value})`;
       ctxFrequencySpectrum.fillRect(index*size, height-value, size, value);
     }
@@ -426,10 +429,16 @@ brightnessGainSlider.addEventListener("input", () => {
   brightnessGainValue.textContent = brightnessGain;
 });
 
+// 周波数スライダー
+frequencySlider.addEventListener("input", () => {
+  audioRxFrequency = parseInt(frequencySlider.value, 10);
+  frequencyValue.textContent = audioRxFrequency;
+});
+
 // 間隔スライダー
 durationSlider.addEventListener("input", () => {
   dotDuration = parseInt(durationSlider.value, 10);
-  durationValue.textContent = dotDuration
+  durationValue.textContent = dotDuration;
 });
 
 
