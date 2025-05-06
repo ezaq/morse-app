@@ -40,13 +40,15 @@
     <input type="range" id="brightnessGainSlider" min="0" max="255">
   </div>
 
+  <!-- 周波数スペクトル -->
+  <canvas id="frequencySpectrum"></canvas>
+
   <!-- 間隔ヒストグラム -->
   <canvas id="durationHistogram"></canvas>
   <div class="controls column">
     <label class="label">間隔: <span class="settingValue" id="durationValue">--</span></label>
     <input type="range" id="durationSlider" min="0" max="500">
   </div>
-
 
   <!-- バージョン表示 -->
   <div id="versionLabel" class="version-label">none</div>

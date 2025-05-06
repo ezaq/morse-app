@@ -32,9 +32,11 @@ const brightnessGainSlider = document.getElementById("brightnessGainSlider");
 const brightnessGainlValue = document.getElementById("brightnessGainValue");
 const brightnessTimeline = document.getElementById("brightnessTimeline");
 const brightnessHistogram = document.getElementById("brightnessHistogram");
+const frequencySpectrum = document.getElementById("frequencySpectrum");
 const durationHistogram = document.getElementById("durationHistogram");
 const ctxTimeline = brightnessTimeline.getContext("2d");
 const ctxBrightnessHistogram = brightnessHistogram.getContext("2d");
+const ctxFrequencySpectrum = frequencySpectrum.getContext("2d");
 const ctxDurationHistogram = durationHistogram.getContext("2d");
 const durationSlider = document.getElementById("durationSlider");
 const durationValue = document.getElementById("durationValue");
@@ -48,7 +50,9 @@ let morseText = "";
 let decodedText = "";
 let capturing = true;
 let videoTrack = null;
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+let audioContext = null;
+let audioAnalyser = null;
 
 let signalHistory = [];
 let lastSignal = null;
@@ -95,6 +99,24 @@ async function initCamera() {
     };
   } catch (error) {
     console.error("カメラの起動に失敗:", error);
+  }
+}
+
+// オーディオの起動
+async function initAudio() {
+  try {
+    // マイクにアクセス
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const source = audioContext.createMediaStreamSource(stream);
+
+    // AnalyserNodeを作成
+    audioAnalyser = audioContext.createAnalyser();
+    audioAnalyser.fftSize = 2048; // FFTのサイズ（周波数分解能に影響）
+
+    source.connect(audioAnalyser);
+  } catch (error) {
+    console.error("オーディオの起動に失敗:", error);
   }
 }
 
@@ -146,17 +168,17 @@ const controlSpeaker = (() => {
   let gainNode = null;
 
   return async (on) => {
-    const now = audioCtx.currentTime;
+    const now = audioContext.currentTime;
     const fadeTime = 0.01; // 10ms のフェード
 
     if (on) {
       if (!oscillator) {
-        oscillator = audioCtx.createOscillator();
-        gainNode = audioCtx.createGain();
+        oscillator = audioContext.createOscillator();
+        gainNode = audioContext.createGain();
         gainNode.gain.setValueAtTime(0, now); // 最初は音量ゼロ
         oscillator.type = 'square';
         oscillator.frequency.setValueAtTime(880, now);
-        oscillator.connect(gainNode).connect(audioCtx.destination);
+        oscillator.connect(gainNode).connect(audioContext.destination);
         oscillator.start();
 
         // フェードイン
@@ -271,6 +293,32 @@ function drawBrightnessHistogram(bdata) {
   });
 }
 
+// 周波数スペクトル描画
+async function drawFrequencySpectrum() {
+  if (!audioAnalyser) return;
+
+  const canvas = frequencySpectrum;
+  const ctx = ctxFrequencySpectrum;
+  const bufferLength = audioAnalyser.frequencyBinCount;
+  const dataArray = new Uint8Array(bufferLength);
+
+  audioAnalyser.getByteFrequencyData(dataArray);
+
+  ctx.fillStyle = 'black';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const barWidth = canvas.width / bufferLength;
+
+  for (let i = 0; i < bufferLength; i++) {
+    const value = dataArray[i];
+    const barHeight = value;
+    const x = i * barWidth;
+
+    ctx.fillStyle = `rgb(${value + 100}, 255, ${255 - value})`;
+    ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+  }
+}
+
 // フレームごとの処理
 function processFrame() {
   if ((!capturing || video.readyState !== video.HAVE_ENOUGH_DATA) && !noVideoDebug) return;
@@ -319,6 +367,9 @@ function processFrame() {
     brightnessHistory.shift();
   }
   drawTimeline();
+
+  // 周波数スペクトル更新
+  drawFrequencySpectrum();
 
   // 受信解析＆間隔ヒストグラム更新
   if (lastSignal !== null) {
@@ -428,5 +479,6 @@ async function preventSleep() {
 //        https://developer.mozilla.org/ja/docs/Web/API/Web_Audio_API
 
 initCamera();
+initAudio();
 preventSleep();
 loop();
