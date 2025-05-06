@@ -20,7 +20,7 @@ if (versionLabel) {
 // DOM要素の取得
 const video = document.getElementById("video");
 const overlay = document.getElementById("overlay");
-const ctxOverlay = overlay.getContext("2d");
+const ctxOverlay = overlay.getContext("2d", {willReadFrequently: true});
 const input = document.getElementById("input");
 const sendLightBtn = document.getElementById("sendLightBtn");
 const sendSpeakerBtn = document.getElementById("sendSpeakerBtn");
