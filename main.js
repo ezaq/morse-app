@@ -31,7 +31,6 @@ const receiveMorseTimeline = document.getElementById("receiveMorseTimeline");
 const ctxReceiveMorseTimeline = receiveMorseTimeline.getContext("2d");
 const clearBtn = document.getElementById("clearBtn");
 const output = document.getElementById("output");
-const brightnessLevelSlider = document.getElementById("brightnessLevelSlider");
 const brightnessLevelValue = document.getElementById("brightnessLevelValue");
 const brightnessGainSlider = document.getElementById("brightnessGainSlider");
 const brightnessGainlValue = document.getElementById("brightnessGainValue");
@@ -79,8 +78,6 @@ let darkDurations = [];
 let dotDuration = 230;
 
 // UIに反映
-brightnessLevelSlider.value = brightnessLevelThreshold;
-brightnessLevelValue.textContent = brightnessLevelThreshold;
 brightnessGainSlider.value = brightnessGain;
 brightnessGainValue.textContent = brightnessGain;
 frequencySlider.value = audioRxFrequency;
@@ -302,12 +299,12 @@ function drawTimeline(canvas, context, history) {
 }
 
 // レベル描画
-function drawLevel(canvas, context, level, slider) {
+function drawLevel(canvas, context, level, range) {
   const width = canvas.width;
   const height = canvas.height;
-  const min = slider.min;
-  const max = slider.max;
-  const value = slider.value;
+  const min = range.min;
+  const max = range.max;
+  const value = brightnessLevelThreshold; // 後で何とかする
   const xl = (level-min)/(max-min) * width;
   const xv = (value-min)/(max-min) * width;
 
@@ -428,9 +425,7 @@ function processFrame() {
   drawBrightnessHistogram(bdata)
   // 輝度レベル更新
   if (!brightnessRange.last || now-brightnessRange.last >= 2000) {
-    brightnessLevelSlider.min = Math.floor(brightnessRange.min/10)*10;
-    brightnessLevelSlider.max = Math.ceil(brightnessRange.max/10)*10;
-    brightnessLevelThreshold = (brightnessLevelSlider.min + brightnessLevelSlider.max) / 2; //自動調整
+    brightnessLevelThreshold = (brightnessRange.min + brightnessRange.max) / 2; //自動調整
     brightnessLevelValue.textContent = `${brightnessRange.max - brightnessRange.min}`;
     brightnessRange.min = brightnessSum;
     brightnessRange.max = brightnessSum;
@@ -439,7 +434,7 @@ function processFrame() {
     brightnessRange.min = Math.min(brightnessRange.min, brightnessSum);
     brightnessRange.max = Math.max(brightnessRange.max, brightnessSum);
   }
-  drawLevel(brightnessLevel, ctxBrightnessLevel, brightnessSum, brightnessLevelSlider);
+  drawLevel(brightnessLevel, ctxBrightnessLevel, brightnessSum, brightnessRange);
 
   // 周波数スペクトル更新
   drawFrequencySpectrum();
@@ -482,12 +477,6 @@ function processFrame() {
 }
 
 // イベントリスナー
-// レベルスライダー
-brightnessLevelSlider.addEventListener("input", () => {
-  brightnessLevelThreshold = parseInt(brightnessLevelSlider.value, 10);
-  brightnessLevelValue.textContent = brightnessLevelThreshold;
-});
-
 // 感度スライダー
 brightnessGainSlider.addEventListener("input", () => {
   brightnessGain = parseInt(brightnessGainSlider.value, 10);
