@@ -304,16 +304,14 @@ function drawLevel(canvas, context, level, range) {
   const height = canvas.height;
   const min = range.min;
   const max = range.max;
-  const value = brightnessLevelThreshold; // 後で何とかする
-  const xl = (level-min)/(max-min) * width;
-  const xv = (value-min)/(max-min) * width;
+  const x = (level-min)/(max-min) * width;
 
   context.clearRect(0, 0, width, height);
   context.fillStyle = '#fff';
-  context.fillRect(0, 0, xl, height);
+  context.fillRect(0, 0, x, height);
   
   context.fillStyle = "#0f0";
-  context.fillRect(xv, 0, 1, height);
+  context.fillRect(width/2, 0, 1, height);
 }
 
 // 明度ヒストグラム描画
@@ -405,7 +403,7 @@ function processFrame() {
   // 明滅データ更新
   const now = Date.now();
   if (noVideoDebug) brightnessSum = now % 100;
-  const isLight = brightnessSum >= brightnessLevelThreshold;
+  const isLight = brightnessSum > brightnessLevelThreshold;
 
   // 送信タイムラインデータ更新
   sendMorseHistory.push(stateSendMorse);
