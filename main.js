@@ -56,6 +56,11 @@ let sendMorseHistory = [];
 let receiveMorseHistory = [];
 let brightnessLevelThreshold = 10;
 let brightnessGain = 220;
+const brightnessRange = {
+  min: 0,
+  max: 100,
+  last: undefined,
+};
 let morseText = "";
 let decodedText = "";
 let capturing = true;
@@ -421,6 +426,16 @@ function processFrame() {
   // 輝度スペクトル更新
   drawBrightnessHistogram(bdata)
   // 輝度レベル更新
+  if (!brightnessRange.last || now-brightnessRange.last >= 2000) {
+    brightnessLevelSlider.min = Math.floor(brightnessRange.min/10)*10;
+    brightnessLevelSlider.max = Math.ceil(brightnessRange.max/10)*10;
+    brightnessRange.min = brightnessSum;
+    brightnessRange.max = brightnessSum;
+    brightnessRange.last = now;
+  } else {
+    brightnessRange.min = Math.min(brightnessRange.min, brightnessSum);
+    brightnessRange.max = Math.max(brightnessRange.max, brightnessSum);
+  }
   drawLevel(brightnessLevel, ctxBrightnessLevel, brightnessSum, brightnessLevelThreshold);
 
   // 周波数スペクトル更新
