@@ -550,14 +550,14 @@ sendStopBtn.addEventListener("click", () => {
   stopMorse();
 });
 
-switchVideo.addEventListener("click ", () => {
+switchVideo.addEventListener("change", () => {
   controlVideo.style.display = switchVideo.checked ? "block" : "none";
-  controlSound.style.display = switchVideo.checked ? "none" : "block";
+  controlSound.style.display = switchSound.checked ? "block" : "none";
 });
 
-switchSound.addEventListener("click ", () => {
-  controlVideo.style.display = switchVideo.checked ? "none" : "block";
-  controlSound.style.display = switchVideo.checked ? "block" : "none";
+switchSound.addEventListener("change", () => {
+  controlVideo.style.display = switchVideo.checked ? "block" : "none";
+  controlSound.style.display = switchSound.checked ? "block" : "none";
 });
 
 // フレーム更新ループ
