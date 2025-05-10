@@ -302,20 +302,21 @@ function drawTimeline(canvas, context, history) {
 }
 
 // レベル描画
-function drawLevel(canvas, context, level, threshold) {
+function drawLevel(canvas, context, level, slider) {
   const width = canvas.width;
   const height = canvas.height;
-  const xl = level/1024 * width;
-  const xt = threshold/1024 * width;
+  const min = slider.min;
+  const max = slider.max;
+  const value = slider.value;
+  const xl = (level-min)/(max-min) * width;
+  const xv = (value-min)/(max-min) * width;
 
   context.clearRect(0, 0, width, height);
   context.fillStyle = '#fff';
   context.fillRect(0, 0, xl, height);
   
-  if (threshold) {
-    context.fillStyle = "#0f0";
-    context.fillRect(xt, 0, 1, height);
-  }
+  context.fillStyle = "#0f0";
+  context.fillRect(xv, 0, 1, height);
 }
 
 // 明度ヒストグラム描画
@@ -436,7 +437,7 @@ function processFrame() {
     brightnessRange.min = Math.min(brightnessRange.min, brightnessSum);
     brightnessRange.max = Math.max(brightnessRange.max, brightnessSum);
   }
-  drawLevel(brightnessLevel, ctxBrightnessLevel, brightnessSum, brightnessLevelThreshold);
+  drawLevel(brightnessLevel, ctxBrightnessLevel, brightnessSum, brightnessLevelSlider);
 
   // 周波数スペクトル更新
   drawFrequencySpectrum();
