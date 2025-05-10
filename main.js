@@ -408,12 +408,16 @@ function processFrame() {
   }
 
   // 音量測定
-  const soundLength = Audio.analyser.frequencyBinCount;
-  const soundArray = new Uint8Array(soundLength);
-  Audio.analyser.getByteFrequencyData(soundArray);
-  const soundIndex = Math.round(audioRxFrequency / (Audio.context.sampleRate / 2 / soundLength));
-  const soundVolume = soundArray[soundIndex];
-
+  let soundArray = null;
+  let soundIndex = 0;
+  let soundVolume = 0;
+  if (Audio) {
+    const length = Audio.analyser.frequencyBinCount;
+    soundArray = new Uint8Array(length);
+    Audio.analyser.getByteFrequencyData(soundArray);
+    soundIndex = Math.round(audioRxFrequency / (Audio.context.sampleRate / 2 / length));
+    soundVolume = soundArray[soundIndex];
+  }
 
   // 明滅データ更新
   const now = Date.now();
