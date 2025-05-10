@@ -52,6 +52,10 @@ input, textarea {
   font-size: inherit;
 }
 
+input[type="radio"]{
+  flex-grow: 0;
+}
+
 button {
   flex-grow: 0;
   padding: 5px 10px;
