@@ -291,7 +291,7 @@ function drawTimeline(canvas, context, history) {
   const length = history.length;
   context.clearRect(0, 0, width, height);
   for (let i = 0, x = width - length; i < length; i++, x++) {
-    context.fillStyle = history ? '#fff' : '#000';
+    context.fillStyle = history[i] ? '#fff' : '#000';
     context.fillRect(x, 0, 1, height);
   }
 }
