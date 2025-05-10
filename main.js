@@ -27,7 +27,7 @@ const sendSpeakerBtn = document.getElementById("sendSpeakerBtn");
 const sendStopBtn = document.getElementById("sendStopBtn");
 const sendMorseTimeline = document.getElementById("sendMorseTimeline");
 const ctxSendMorseTimeline = sendMorseTimeline.getContext("2d");
-const receiveMorseTimeline = document.getElementById("sendMorseTimeline");
+const receiveMorseTimeline = document.getElementById("receiveMorseTimeline");
 const ctxReceiveMorseTimeline = receiveMorseTimeline.getContext("2d");
 const clearBtn = document.getElementById("clearBtn");
 const output = document.getElementById("output");
@@ -300,8 +300,8 @@ function drawTimeline(canvas, context, history) {
 function drawLevel(canvas, context, level, threshold) {
   const width = canvas.width;
   const height = canvas.height;
-  const xl = level/255 * width;
-  const xt = threshold/255 * width;
+  const xl = level/1024 * width;
+  const xt = threshold/1024 * width;
 
   context.clearRect(0, 0, width, height);
   context.fillStyle = '#fff';
