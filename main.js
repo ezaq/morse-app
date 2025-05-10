@@ -2,7 +2,7 @@
 // モールス信号送受信アプリ - リファクタ済み・コメント付き
 
 // ▼ バージョン番号をここで管理
-const APP_VERSION = "0.1.8";
+const APP_VERSION = "0.1.9";
 
 // コンソールにバージョンを表示
 console.log(`モールス信号アプリ バージョン: ${APP_VERSION}`);
@@ -31,16 +31,22 @@ const receiveMorseTimeline = document.getElementById("receiveMorseTimeline");
 const ctxReceiveMorseTimeline = receiveMorseTimeline.getContext("2d");
 const clearBtn = document.getElementById("clearBtn");
 const output = document.getElementById("output");
+
+const brightnessHistogram = document.getElementById("brightnessHistogram");
+const ctxBrightnessHistogram = brightnessHistogram.getContext("2d");
 const brightnessLevelValue = document.getElementById("brightnessLevelValue");
 const brightnessGainSlider = document.getElementById("brightnessGainSlider");
 const brightnessGainlValue = document.getElementById("brightnessGainValue");
 const brightnessLevel = document.getElementById("brightnessLevel");
 const ctxBrightnessLevel = brightnessLevel.getContext("2d");
-const brightnessHistogram = document.getElementById("brightnessHistogram");
+
 const frequencySpectrum = document.getElementById("frequencySpectrum");
-const durationHistogram = document.getElementById("durationHistogram");
-const ctxBrightnessHistogram = brightnessHistogram.getContext("2d");
 const ctxFrequencySpectrum = frequencySpectrum.getContext("2d");
+const soundLevel = document.getElementById("soundLevel");
+const ctxSoundLevel = soundLevel.getContext("2d");
+const soundLevelValue = document.getElementById("soundLevelValue");
+
+const durationHistogram = document.getElementById("durationHistogram");
 const ctxDurationHistogram = durationHistogram.getContext("2d");
 const durationSlider = document.getElementById("durationSlider");
 const durationValue = document.getElementById("durationValue");
@@ -58,6 +64,11 @@ let brightnessGain = 220;
 const brightnessRange = {
   min: 0,
   max: 100,
+  last: undefined,
+};
+const soundRange = {
+  min: 0,
+  max: 256,
   last: undefined,
 };
 let morseText = "";
@@ -336,24 +347,19 @@ function drawBrightnessHistogram(bdata) {
 }
 
 // 周波数スペクトル描画
-async function drawFrequencySpectrum() {
+async function drawFrequencySpectrum(dataArray, soundIndex) {
   if (!Audio.analyser) return;
 
   const width = frequencySpectrum.width;
   const height = frequencySpectrum.height;
-  const length = Audio.analyser.frequencyBinCount;
+  const length = dataArray.length;
   const size = width / length;
-
-  const dataArray = new Uint8Array(length);
-  Audio.analyser.getByteFrequencyData(dataArray);
 
   ctxFrequencySpectrum.clearRect(0, 0, width, height);
 
   // 受信周波数
   ctxFrequencySpectrum.fillStyle = '#00ff00'; // 緑色
-  // hz = index * Audio.context.sampleRate / 2 / length;
-  let index = Math.round(audioRxFrequency / (Audio.context.sampleRate / 2 / length));
-  ctxFrequencySpectrum.fillRect(index * size, 0, size, height);
+  ctxFrequencySpectrum.fillRect(soundIndex * size, 0, size, height);
 
   // 周波数スペクトル
   dataArray.forEach((value, index) => {
@@ -400,6 +406,14 @@ function processFrame() {
     bdata[brightness] += 1;
   }
 
+  // 音量測定
+  const soundLength = Audio.analyser.frequencyBinCount;
+  const soundArray = new Uint8Array(soundLength);
+  Audio.analyser.getByteFrequencyData(soundArray);
+  const soundIndex = Math.round(audioRxFrequency / (Audio.context.sampleRate / 2 / soundLength));
+  const soundVolume = soundArray[soundIndex];
+
+
   // 明滅データ更新
   const now = Date.now();
   if (noVideoDebug) brightnessSum = now % 100;
@@ -426,7 +440,7 @@ function processFrame() {
     brightnessLevelThreshold = (brightnessRange.min + brightnessRange.max) / 2; //自動調整
     brightnessLevelValue.textContent = `${brightnessRange.max - brightnessRange.min}`;
     brightnessRange.min = brightnessSum;
-    brightnessRange.max = brightnessSum + 10;
+    brightnessRange.max = brightnessSum + detectSize*detectSize*0.0025; // 0.125%以下のブレは誤差
     brightnessRange.last = now;
   } else {
     brightnessRange.min = Math.min(brightnessRange.min, brightnessSum);
@@ -435,7 +449,19 @@ function processFrame() {
   drawLevel(brightnessLevel, ctxBrightnessLevel, brightnessSum, brightnessRange);
 
   // 周波数スペクトル更新
-  drawFrequencySpectrum();
+  drawFrequencySpectrum(soundArray, soundIndex);
+  // 音量レベル更新
+  if (!soundRange.last || now-soundRange.last >= 2000) {
+    soundLevelThreshold = (soundRange.min + soundRange.max) / 2; //自動調整
+    soundLevelValue.textContent = `${soundRange.max - soundRange.min}`;
+    soundRange.min = soundVolume;
+    soundRange.max = soundVolume + 10;
+    soundRange.last = now;
+  } else {
+    soundRange.min = Math.min(soundRange.min, soundVolume);
+    soundRange.max = Math.max(soundRange.max, soundVolume);
+  }
+  drawLevel(soundLevel, ctxSoundLevel, soundVolume, soundRange);
 
   // 受信解析＆間隔ヒストグラム更新
   if (lastSignal !== null) {

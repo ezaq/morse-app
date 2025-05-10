@@ -42,6 +42,10 @@
 
   <!-- 周波数スペクトル -->
   <canvas id="frequencySpectrum"></canvas>
+  <canvas id="soundLevel" class="level"></canvas>
+  <div class="controls">
+    <label class="settingTitle">レベル: <span class="settingValue" id="soundLevelValue">--</span></label>
+  </div>
   <div class="controls">
     <label class="settingTitle">周波数: <span class="settingValue" id="frequencyValue">--</span></label>
     <input type="range" id="frequencySlider" min="100" max="10000" step="10">
