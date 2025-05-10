@@ -66,6 +66,7 @@ const brightnessRange = {
   max: 100,
   last: undefined,
 };
+let soundLevelThreshold = 10;
 const soundRange = {
   min: 0,
   max: 256,
@@ -348,7 +349,7 @@ function drawBrightnessHistogram(bdata) {
 
 // 周波数スペクトル描画
 async function drawFrequencySpectrum(dataArray, soundIndex) {
-  if (!Audio.analyser) return;
+  if (!dataArray?.length) return;
 
   const width = frequencySpectrum.width;
   const height = frequencySpectrum.height;
