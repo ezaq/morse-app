@@ -32,6 +32,11 @@ const ctxReceiveMorseTimeline = receiveMorseTimeline.getContext("2d");
 const clearBtn = document.getElementById("clearBtn");
 const output = document.getElementById("output");
 
+const switchVideo = document.getElementById("switchVideo");
+const switchSound = document.getElementById("switchSound");
+const controlVideo = document.getElementById("controlVideo");
+const controlSound = document.getElementById("controlSound");
+
 const brightnessHistogram = document.getElementById("brightnessHistogram");
 const ctxBrightnessHistogram = brightnessHistogram.getContext("2d");
 const brightnessLevelValue = document.getElementById("brightnessLevelValue");
@@ -422,7 +427,7 @@ function processFrame() {
   // 明滅データ更新
   const now = Date.now();
   if (noVideoDebug) brightnessSum = now % 100;
-  const isLight = brightnessSum > brightnessLevelThreshold;
+  const isLight = switchVideo.checked ? (brightnessSum > brightnessLevelThreshold) : (soundVolume > soundLevelThreshold);
 
   // 送信タイムラインデータ更新
   sendMorseHistory.push(stateSendMorse);
@@ -543,6 +548,16 @@ sendSpeakerBtn.addEventListener("click", () => {
 
 sendStopBtn.addEventListener("click", () => {
   stopMorse();
+});
+
+switchVideo.addEventListener("change ", () => {
+  controlVideo.display = "block";
+  controlSound.display = "none";
+});
+
+switchSound.addEventListener("change ", () => {
+  controlVideo.display = "none";
+  controlSound.display = "block";
 });
 
 // フレーム更新ループ

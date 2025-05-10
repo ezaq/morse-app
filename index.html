@@ -27,28 +27,38 @@
     <textarea id="output" readonly></textarea>
     <button id="clearBtn">クリア</button>
   </div>
+  <div class="controls">
+    <input type="radio" id="switchVideo" name="switchReceive" value="video" checked>
+    <label for="switchVideo">💡</label>
+    <input type="radio" id="switchSound" name="switchReceive" value="sound">
+    <label for="switchSound">🔊</label>
+  </div>
   <canvas id="receiveMorseTimeline" class="timeline"></canvas>
 
   <!-- 感度スライダー制御パネル -->
-  <canvas id="brightnessHistogram"></canvas>
-  <canvas id="brightnessLevel" class="level"></canvas>
-  <div class="controls">
-    <label class="settingTitle">レベル: <span class="settingValue" id="brightnessLevelValue">--</span></label>
-  </div>
-  <div class="controls">
-    <label class="settingTitle">感度: <span class="settingValue" id="brightnessGainValue">--</span></label>
-    <input type="range" id="brightnessGainSlider" min="0" max="255">
+  <div id="controlVideo">
+    <canvas id="brightnessHistogram"></canvas>
+    <canvas id="brightnessLevel" class="level"></canvas>
+    <div class="controls">
+      <label class="settingTitle">レベル: <span class="settingValue" id="brightnessLevelValue">--</span></label>
+    </div>
+    <div class="controls">
+      <label class="settingTitle">感度: <span class="settingValue" id="brightnessGainValue">--</span></label>
+      <input type="range" id="brightnessGainSlider" min="0" max="255">
+    </div>
   </div>
 
   <!-- 周波数スペクトル -->
-  <canvas id="frequencySpectrum"></canvas>
-  <canvas id="soundLevel" class="level"></canvas>
-  <div class="controls">
-    <label class="settingTitle">レベル: <span class="settingValue" id="soundLevelValue">--</span></label>
-  </div>
-  <div class="controls">
-    <label class="settingTitle">周波数: <span class="settingValue" id="frequencyValue">--</span></label>
-    <input type="range" id="frequencySlider" min="100" max="10000" step="10">
+  <div id="controlSound" display="none">
+    <canvas id="frequencySpectrum"></canvas>
+    <canvas id="soundLevel" class="level"></canvas>
+    <div class="controls">
+      <label class="settingTitle">レベル: <span class="settingValue" id="soundLevelValue">--</span></label>
+    </div>
+    <div class="controls">
+      <label class="settingTitle">周波数: <span class="settingValue" id="frequencyValue">--</span></label>
+      <input type="range" id="frequencySlider" min="100" max="10000" step="10">
+    </div>
   </div>
 
   <!-- 間隔ヒストグラム -->
