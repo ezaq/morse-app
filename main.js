@@ -431,7 +431,7 @@ function processFrame() {
     brightnessLevelSlider.min = Math.floor(brightnessRange.min/10)*10;
     brightnessLevelSlider.max = Math.ceil(brightnessRange.max/10)*10;
     brightnessLevelThreshold = (brightnessLevelSlider.min + brightnessLevelSlider.max) / 2; //自動調整
-    brightnessLevelSlider.level = brightnessLevelThreshold; //自動調整
+    brightnessLevelValue.textContent = `${brightnessRange.max - brightnessRange.min}`;
     brightnessRange.min = brightnessSum;
     brightnessRange.max = brightnessSum;
     brightnessRange.last = now;
