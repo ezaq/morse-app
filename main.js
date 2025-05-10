@@ -551,13 +551,13 @@ sendStopBtn.addEventListener("click", () => {
 });
 
 switchVideo.addEventListener("change ", () => {
-  controlVideo.display = "block";
-  controlSound.display = "none";
+  controlVideo.style.display = "block";
+  controlSound.style.display = "none";
 });
 
 switchSound.addEventListener("change ", () => {
-  controlVideo.display = "none";
-  controlSound.display = "block";
+  controlVideo.style.display = "none";
+  controlSound.style.display = "block";
 });
 
 // フレーム更新ループ
