@@ -426,7 +426,7 @@ function processFrame() {
     brightnessLevelThreshold = (brightnessRange.min + brightnessRange.max) / 2; //自動調整
     brightnessLevelValue.textContent = `${brightnessRange.max - brightnessRange.min}`;
     brightnessRange.min = brightnessSum;
-    brightnessRange.max = brightnessSum;
+    brightnessRange.max = brightnessSum + 10;
     brightnessRange.last = now;
   } else {
     brightnessRange.min = Math.min(brightnessRange.min, brightnessSum);
