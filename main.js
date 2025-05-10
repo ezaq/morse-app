@@ -54,7 +54,7 @@ let Audio = null;
 let noVideoDebug = false;
 let sendMorseHistory = [];
 let receiveMorseHistory = [];
-let brightnessLevel = 10;
+let brightnessLevelThreshold = 10;
 let brightnessGain = 220;
 let morseText = "";
 let decodedText = "";
@@ -74,8 +74,8 @@ let darkDurations = [];
 let dotDuration = 230;
 
 // UIに反映
-brightnessLevelSlider.value = brightnessLevel;
-brightnessLevelValue.textContent = brightnessLevel;
+brightnessLevelSlider.value = brightnessLevelThreshold;
+brightnessLevelValue.textContent = brightnessLevelThreshold;
 brightnessGainSlider.value = brightnessGain;
 brightnessGainValue.textContent = brightnessGain;
 frequencySlider.value = audioRxFrequency;
@@ -402,7 +402,7 @@ function processFrame() {
   // 明滅データ更新
   const now = Date.now();
   if (noVideoDebug) brightnessSum = now % 100;
-  const isLight = brightnessSum >= brightnessLevel;
+  const isLight = brightnessSum >= brightnessLevelThreshold;
 
   // 送信タイムラインデータ更新
   sendMorseHistory.push(stateSendMorse);
@@ -421,7 +421,7 @@ function processFrame() {
   // 輝度スペクトル更新
   drawBrightnessHistogram(bdata)
   // 輝度レベル更新
-  drawLevel(brightnessLevel, ctxBrightnessLevel, brightnessSum, brightnessLevel);
+  drawLevel(brightnessLevel, ctxBrightnessLevel, brightnessSum, brightnessLevelThreshold);
 
   // 周波数スペクトル更新
   drawFrequencySpectrum();
@@ -466,8 +466,8 @@ function processFrame() {
 // イベントリスナー
 // レベルスライダー
 brightnessLevelSlider.addEventListener("input", () => {
-  brightnessLevel = parseInt(brightnessLevelSlider.value, 10);
-  brightnessLevelValue.textContent = brightnessLevel;
+  brightnessLevelThreshold = parseInt(brightnessLevelSlider.value, 10);
+  brightnessLevelValue.textContent = brightnessLevelThreshold;
 });
 
 // 感度スライダー
