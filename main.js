@@ -2,7 +2,7 @@
 // モールス信号送受信アプリ - リファクタ済み・コメント付き
 
 // ▼ バージョン番号をここで管理
-const APP_VERSION = "0.1.7";
+const APP_VERSION = "0.1.8";
 
 // コンソールにバージョンを表示
 console.log(`モールス信号アプリ バージョン: ${APP_VERSION}`);
@@ -27,6 +27,8 @@ const sendSpeakerBtn = document.getElementById("sendSpeakerBtn");
 const sendStopBtn = document.getElementById("sendStopBtn");
 const sendMorseTimeline = document.getElementById("sendMorseTimeline");
 const ctxSendMorseTimeline = sendMorseTimeline.getContext("2d");
+const receiveMorseTimeline = document.getElementById("sendMorseTimeline");
+const ctxReceiveMorseTimeline = receiveMorseTimeline.getContext("2d");
 const clearBtn = document.getElementById("clearBtn");
 const output = document.getElementById("output");
 const brightnessLevelSlider = document.getElementById("brightnessLevelSlider");
@@ -51,7 +53,7 @@ let Audio = null;
 // 初期設定
 let noVideoDebug = false;
 let sendMorseHistory = [];
-let brightnessHistory = [];
+let receiveMorseHistory = [];
 let brightnessLevel = 10;
 let brightnessGain = 220;
 let morseText = "";
@@ -404,12 +406,12 @@ function processFrame() {
   }
   drawTimeline(sendMorseTimeline, ctxSendMorseTimeline, sendMorseHistory);
 
-  // タイムラインデータ更新
-  brightnessHistory.push({state: isLight, val:brightnessSum});
-  if (brightnessHistory.length > brightnessTimeline.width) {
-    brightnessHistory.shift();
+  // 受信タイムラインデータ更新
+  receiveMorseHistory.push({state: isLight, val:brightnessSum});
+  if (receiveMorseHistory.length > receiveMorseTimeline.width) {
+    receiveMorseHistory.shift();
   }
-  drawTimeline(brightnessTimeline, ctxTimeline, brightnessHistory, brightnessLevel);
+  drawTimeline(receiveMorseTimeline, ctxReceiveMorseTimeline, receiveMorseHistory, brightnessLevel);
 
   // 周波数スペクトル更新
   drawFrequencySpectrum();
