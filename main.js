@@ -35,11 +35,11 @@ const brightnessLevelSlider = document.getElementById("brightnessLevelSlider");
 const brightnessLevelValue = document.getElementById("brightnessLevelValue");
 const brightnessGainSlider = document.getElementById("brightnessGainSlider");
 const brightnessGainlValue = document.getElementById("brightnessGainValue");
-const brightnessTimeline = document.getElementById("brightnessTimeline");
+const brightnessLevel = document.getElementById("brightnessLevel");
+const ctxBrightnessLevel = brightnessLevel.getContext("2d");
 const brightnessHistogram = document.getElementById("brightnessHistogram");
 const frequencySpectrum = document.getElementById("frequencySpectrum");
 const durationHistogram = document.getElementById("durationHistogram");
-const ctxTimeline = brightnessTimeline.getContext("2d");
 const ctxBrightnessHistogram = brightnessHistogram.getContext("2d");
 const ctxFrequencySpectrum = frequencySpectrum.getContext("2d");
 const ctxDurationHistogram = durationHistogram.getContext("2d");
@@ -285,25 +285,31 @@ function drawHistogram() {
 }
 
 // タイムライン描画
-function drawTimeline(canvas, context, history, level) {
+function drawTimeline(canvas, context, history) {
   const width = canvas.width;
   const height = canvas.height;
   const length = history.length;
   context.clearRect(0, 0, width, height);
   for (let i = 0, x = width - length; i < length; i++, x++) {
-    context.fillStyle = history[i].state ? '#fff' : '#000';
+    context.fillStyle = history ? '#fff' : '#000';
     context.fillRect(x, 0, 1, height);
+  }
+}
 
-    if (history[i].val) {
-      context.fillStyle = "rgb(255 128 0 / 50%)";
-      const hVal = Math.min(Math.max(0, history[i].val), height);
-      context.fillRect(x, height-hVal, 1, hVal);
-    }
+// レベル描画
+function drawLevel(canvas, context, level, threshold) {
+  const width = canvas.width;
+  const height = canvas.height;
+  const xl = level/255 * width;
+  const xt = threshold/255 * width;
 
-    if (level) {
-      context.fillStyle = "#0f0";
-      context.fillRect(x, height-level, 1, 2);
-    }
+  context.clearRect(0, 0, width, height);
+  context.fillStyle = '#fff';
+  context.fillRect(0, 0, xl, height);
+  
+  if (threshold) {
+    context.fillStyle = "#0f0";
+    context.fillRect(xt, 0, 1, height);
   }
 }
 
@@ -392,7 +398,6 @@ function processFrame() {
     }
     bdata[brightness] += 1;
   }
-  drawBrightnessHistogram(bdata)
 
   // 明滅データ更新
   const now = Date.now();
@@ -400,18 +405,23 @@ function processFrame() {
   const isLight = brightnessSum >= brightnessLevel;
 
   // 送信タイムラインデータ更新
-  sendMorseHistory.push({state: stateSendMorse});
+  sendMorseHistory.push(stateSendMorse);
   if (sendMorseHistory.length > sendMorseTimeline.width) {
     sendMorseHistory.shift();
   }
   drawTimeline(sendMorseTimeline, ctxSendMorseTimeline, sendMorseHistory);
 
   // 受信タイムラインデータ更新
-  receiveMorseHistory.push({state: isLight, val:brightnessSum});
+  receiveMorseHistory.push(isLight);
   if (receiveMorseHistory.length > receiveMorseTimeline.width) {
     receiveMorseHistory.shift();
   }
-  drawTimeline(receiveMorseTimeline, ctxReceiveMorseTimeline, receiveMorseHistory, brightnessLevel);
+  drawTimeline(receiveMorseTimeline, ctxReceiveMorseTimeline, receiveMorseHistory);
+
+  // 輝度スペクトル更新
+  drawBrightnessHistogram(bdata)
+  // 輝度レベル更新
+  drawLevel(brightnessLevel, ctxBrightnessLevel, brightnessSum, brightnessLevel);
 
   // 周波数スペクトル更新
   drawFrequencySpectrum();
